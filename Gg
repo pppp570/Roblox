@@ -1,0 +1,101 @@
+if not game:IsLoaded() then
+	repeat task.wait() until game:IsLoaded()
+end
+
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+-- Settings
+_G.AutoCollect = false
+local moveSpeed = 32       -- ความเร็วเดิน
+local holdDelay = 4         -- ดีเลย์หลังเก็บแต่ละชิ้น
+local mainFolder = workspace["\224\184\135\224\184\178\224\184\153\224\184\129\224\185\136\224\184\173\224\184\170\224\184\163\224\185\137\224\184\178\224\184\135"]
+
+-- ฟังก์ชันเดินไปยังตำแหน่ง
+local function moveTo(pos)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.WalkSpeed = moveSpeed
+		humanoid:MoveTo(pos)
+		humanoid.MoveToFinished:Wait()
+	end
+end
+
+-- ฟังก์ชันเก็บของแต่ละชิ้น
+local function collectObject(obj)
+	local prompt = obj:FindFirstChild("Hold E")
+	if prompt and prompt:IsA("ProximityPrompt") then
+		local ok, pos = pcall(function() return prompt.Parent.Position end)
+		if ok then
+			moveTo(pos)           -- เดินไปยังวัตถุ
+			fireproximityprompt(prompt)  -- กดเก็บ
+			task.wait(holdDelay)  -- รอ holdDelay
+		end
+	end
+end
+
+-- ฟังก์ชันเก็บของทั้งหมดต่อเนื่อง
+local function collectAll()
+	for _, obj in pairs(mainFolder:GetChildren()) do
+		if _G.AutoCollect then
+			collectObject(obj)
+		end
+	end
+end
+
+-- สร้าง GUI
+local ScreenGui = Instance.new("ScreenGui", playerGui)
+ScreenGui.Name = "AutoCollectUI"
+
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 180, 0, 55)
+Frame.Position = UDim2.new(0.5, -90, 0.9, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.BackgroundTransparency = 0.15
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+
+local UICorner = Instance.new("UICorner", Frame)
+UICorner.CornerRadius = UDim.new(0, 12)
+
+local Button = Instance.new("TextButton", Frame)
+Button.Size = UDim2.new(1, 0, 1, 0)
+Button.Text = "🔴 Auto Collect: OFF"
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.Font = Enum.Font.GothamBold
+Button.TextSize = 16
+Button.BackgroundTransparency = 1
+
+-- ปุ่มเปิด/ปิด
+Button.MouseButton1Click:Connect(function()
+	_G.AutoCollect = not _G.AutoCollect
+	if _G.AutoCollect then
+		Button.Text = "🟢 Auto Collect: ON"
+		Button.TextColor3 = Color3.fromRGB(0, 255, 0)
+	else
+		Button.Text = "🔴 Auto Collect: OFF"
+		Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	end
+end)
+
+-- ลูปหลักเก็บต่อเนื่อง
+task.spawn(function()
+	while true do
+		if _G.AutoCollect then
+			collectAll()  -- เก็บทุกชิ้นทีละตัว
+			task.wait(0.1) -- เว้นเล็กน้อยก่อนรอบถัดไป
+		else
+			task.wait(0.5)
+		end
+	end
+end)
+
+-- แจ้งเตือนตอนโหลด
+game.StarterGui:SetCore("SendNotification", {
+	Title = "So Hub",
+	Text = "ฟามก่อสร้าง",
+	Duration = 5
+})
