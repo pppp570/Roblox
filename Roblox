@@ -1,0 +1,91 @@
+if not game:IsLoaded() then
+	repeat task.wait() until game:IsLoaded()
+end
+
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+-- Settings
+_G.AutoCollect = false
+local collectDistance = 10    -- ระยะใกล้เพื่อเก็บ
+local startDelay = 0          -- เริ่มเก็บทันที
+local holdDelay = 6.7         -- ดีเลย์หลังเก็บแต่ละชุด 2 อัน
+local mainFolder = workspace["\224\184\135\224\184\178\224\184\153\224\184\129\224\185\136\224\184\173\224\184\170\224\184\163\224\185\137\224\184\178\224\184\135"]
+
+-- ฟังก์ชันเก็บของทีละ 2 อัน
+local function collectNearby()
+	local count = 0
+	for _, obj in pairs(mainFolder:GetChildren()) do
+		local prompt = obj:FindFirstChild("Hold E")
+		if prompt and prompt:IsA("ProximityPrompt") then
+			local ok, pos = pcall(function() return prompt.Parent.Position end)
+			if ok and (hrp.Position - pos).Magnitude <= collectDistance then
+				fireproximityprompt(prompt)
+				count = count + 1
+				if count >= 2 then
+					break -- กดแค่ 2 อันต่อรอบ
+				end
+			end
+		end
+	end
+	if count > 0 then
+		task.wait(holdDelay) -- รอหลังเก็บ 2 อัน
+	end
+end
+
+-- สร้าง GUI
+local ScreenGui = Instance.new("ScreenGui", playerGui)
+ScreenGui.Name = "AutoCollectUI"
+
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 180, 0, 55)
+Frame.Position = UDim2.new(0.5, -90, 0.9, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.BackgroundTransparency = 0.15
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+
+local UICorner = Instance.new("UICorner", Frame)
+UICorner.CornerRadius = UDim.new(0, 12)
+
+local Button = Instance.new("TextButton", Frame)
+Button.Size = UDim2.new(1, 0, 1, 0)
+Button.Text = "🔴 Auto Collect: OFF"
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.Font = Enum.Font.GothamBold
+Button.TextSize = 16
+Button.BackgroundTransparency = 1
+
+-- ปุ่มเปิด/ปิด
+Button.MouseButton1Click:Connect(function()
+	_G.AutoCollect = not _G.AutoCollect
+	if _G.AutoCollect then
+		Button.Text = "🟢 Auto Collect: ON"
+		Button.TextColor3 = Color3.fromRGB(0, 255, 0)
+	else
+		Button.Text = "🔴 Auto Collect: OFF"
+		Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	end
+end)
+
+-- ลูปหลักแบบต่อเนื่อง
+task.spawn(function()
+	while true do
+		if _G.AutoCollect then
+			collectNearby()      -- กดทีละ 2 อันแล้วรอ holdDelay
+			task.wait(0.5)       -- เว้นเล็กน้อยก่อนรอบถัดไป
+		else
+			task.wait(0.5)
+		end
+	end
+end)
+
+-- แจ้งเตือนตอนโหลดเสร็จ
+game.StarterGui:SetCore("SendNotification", {
+	Title = "Auto Collect Loaded ✅",
+	Text = "ฟามก่อสร้าง (So Hub)",
+	Duration = 5
+})
