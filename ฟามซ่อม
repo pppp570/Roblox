@@ -1,0 +1,96 @@
+-- 🌀 โหลดเกมก่อนเริ่ม
+if not game:IsLoaded() then
+	repeat task.wait() until game:IsLoaded()
+end
+
+-- 🧩 Service
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- 🌿 ตัวแปรเปิดปิด AutoFarm
+_G.AutoFarm = false
+
+-- ⚙️ ฟังก์ชันฟาร์ม
+local function StartFarm()
+	task.spawn(function()
+		task.wait(2) -- ⏳ ดีเลย์ก่อนเริ่มรอบแรก 2 วิ
+
+		local root = workspace["\224\184\163\224\185\137\224\184\178\224\184\153\224\184\139\224\185\136\224\184\173\224\184\161"]
+		if not root then return end
+
+		local thirdChild = root:GetChildren()[3]
+		if not thirdChild then return end
+
+		local targetModel = thirdChild:FindFirstChild("Model")
+		if not targetModel then return end
+
+		-- 🔄 ฟังก์ชันกดทุกอันใน Model
+		local function ClickAll()
+			for _, obj in ipairs(targetModel:GetChildren()) do
+				if not _G.AutoFarm then break end
+				task.wait(1) -- ⏳ ดีเลย์ก่อนกดแต่ละอัน 1 วิ
+				for _, prompt in pairs(obj:GetDescendants()) do
+					if prompt:IsA("ProximityPrompt") then
+						fireproximityprompt(prompt)
+						print("✅ กด:", obj.Name)
+					end
+				end
+				task.wait(3) -- 🕐 ดีเลย์หลังจากกดแต่ละอัน 3 วิ
+			end
+		end
+
+		-- 🌱 เรียกครั้งแรก
+		while _G.AutoFarm do
+			ClickAll()
+			task.wait(0.1) -- 🌀 เว้นรอบเล็ก ๆ ก่อนเช็คอันใหม่
+		end
+	end)
+
+	-- 🌱 ฟังก์ชัน Listen การสร้างอันใหม่ใน Model
+	targetModel.ChildAdded:Connect(function(child)
+		if _G.AutoFarm then
+			task.spawn(function()
+				task.wait(1) -- ดีเลย์ก่อนกดอันใหม่
+				for _, prompt in pairs(child:GetDescendants()) do
+					if prompt:IsA("ProximityPrompt") then
+						fireproximityprompt(prompt)
+						print("✅ กดอันใหม่:", child.Name)
+					end
+				end
+				task.wait(3) -- ดีเลย์หลังจากกดอันใหม่
+			end)
+		end
+	end)
+end
+
+-- 🧰 GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AutoFarmUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 200, 0, 45)
+toggleButton.Position = UDim2.new(0.5, -100, 0.8, 0)
+toggleButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 22
+toggleButton.Text = "⚪ Start AutoFarm"
+toggleButton.Parent = screenGui
+toggleButton.Active = true
+toggleButton.Draggable = true
+
+-- 🎛️ ระบบเปิด/ปิด
+toggleButton.MouseButton1Click:Connect(function()
+	_G.AutoFarm = not _G.AutoFarm
+	if _G.AutoFarm then
+		toggleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+		toggleButton.Text = "🟢 Farming... (เริ่มใน 2 วิ)"
+		StartFarm()
+	else
+		toggleButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+		toggleButton.Text = "⚪ Start AutoFarm"
+	end
+end)
