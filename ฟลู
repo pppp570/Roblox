@@ -1,0 +1,350 @@
+-- 🟢 โหลดเกมก่อนเริ่ม
+if not game:IsLoaded() then
+    repeat task.wait() until game:IsLoaded()
+end
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+local Camera = workspace.CurrentCamera
+
+-- =========================
+-- Settings เริ่มต้น
+-- =========================
+_G.AutoCollect = false
+_G.FarmMoveSpeed = 32
+_G.HoldDelay = 4
+_G.HeadScriptEnabled = false
+_G.HeadSize = 200
+_G.CombatSpeed = 16
+
+-- แก้ชื่อ Folder ให้ตรงกับเกม
+local mainFolder = workspace:FindFirstChild("\224\184\135\224\184\178\224\184\153\224\184\129\224\185\136\224\184\173\224\184\170\224\184\163\224\185\137\224\184\178\224\184\135")
+if not mainFolder then warn("Folder สำหรับฟามไม่พบ!") end
+
+-- =========================
+-- ฟังก์ชันฟาม
+-- =========================
+local function moveTo(pos)
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = _G.FarmMoveSpeed
+        humanoid:MoveTo(pos)
+        humanoid.MoveToFinished:Wait()
+    end
+end
+
+local function collectObject(obj)
+    local prompt = obj:FindFirstChild("Hold E")
+    if prompt and prompt:IsA("ProximityPrompt") then
+        local ok, pos = pcall(function() return prompt.Parent.Position end)
+        if ok then
+            moveTo(pos)
+            fireproximityprompt(prompt)
+            task.wait(_G.HoldDelay)
+        end
+    end
+end
+
+local function collectAll()
+    if not mainFolder then return end
+    for _, obj in pairs(mainFolder:GetChildren()) do
+        if _G.AutoCollect then
+            collectObject(obj)
+        end
+    end
+end
+
+-- Loop Auto Collect
+task.spawn(function()
+    while true do
+        if _G.AutoCollect then
+            collectAll()
+            task.wait(0.1)
+        else
+            task.wait(0.5)
+        end
+    end
+end)
+
+-- =========================
+-- โหลด WindUI
+-- =========================
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+local Window = WindUI:CreateWindow({
+    Title = "So Hub",
+    Icon = "bot",
+    Author = "ภาษาไทย",
+    Folder = "SoHub",
+    Size = UDim2.fromOffset(580, 490),
+    Theme = "Dark",
+})
+
+-- =========================
+-- แท็บฟาม (Auto Collect)
+-- =========================
+local tabFarm = Window:Tab({ Title = "ฟาม", Icon = "sparkles" })
+local sectionFarm = tabFarm:Section({ Title = "ฟามก่อสร้าง" })
+
+sectionFarm:Toggle({
+    Title = "Enable Auto Collect",
+    Value = _G.AutoCollect,
+    Callback = function(state)
+        _G.AutoCollect = state
+        WindUI:Notify({
+            Title = "Auto Collect",
+            Content = state and "Enabled" or "Disabled",
+            Duration = 2
+        })
+    end
+})
+
+sectionFarm:Slider({
+    Title = "Move Speed (ฟาม)",
+    Value = { Min = 16, Max = 200, Default = _G.FarmMoveSpeed },
+    Step = 1,
+    Callback = function(value)
+        _G.FarmMoveSpeed = value
+    end
+})
+
+sectionFarm:Slider({
+    Title = "Hold Delay",
+    Value = { Min = 0, Max = 10, Default = _G.HoldDelay },
+    Step = 0.1,
+    Callback = function(value)
+        _G.HoldDelay = value
+    end
+})
+
+sectionFarm:Button({
+    Title = "Collect Once",
+    Icon = "hand",
+    Callback = function()
+        collectAll()
+        WindUI:Notify({
+            Title = "Collect Once",
+            Content = "Finished collecting!",
+            Duration = 2
+        })
+    end
+})
+
+-- =========================
+-- แท็บต่อสู้ (Combat)
+-- =========================
+local tabCombat = Window:Tab({ Title = "ต่อสู้", Icon = "sword" })
+local sectionCombat = tabCombat:Section({ Title = "ระบบต่อสู้" })
+
+sectionCombat:Slider({
+    Title = "Speed (ตัวเอง)",
+    Value = { Min = 16, Max = 200, Default = _G.CombatSpeed },
+    Step = 1,
+    Callback = function(value)
+        _G.CombatSpeed = value
+        if character:FindFirstChild("Humanoid") then
+            character.Humanoid.WalkSpeed = value
+        end
+    end
+})
+
+local headConnection
+local function updateHead()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= player then
+            local char = v.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                pcall(function()
+                    if _G.HeadScriptEnabled then
+                        hrp.Size = Vector3.new(_G.HeadSize,_G.HeadSize,_G.HeadSize)
+                        hrp.Transparency = 0.7
+                        hrp.BrickColor = BrickColor.new("Really black")
+                        hrp.Material = "Neon"
+                        hrp.CanCollide = false
+                    end
+                end)
+            end
+        end
+    end
+end
+
+local function onCharacterAdded(char)
+    char:WaitForChild("HumanoidRootPart")
+    updateHead()
+end
+
+for _, v in pairs(Players:GetPlayers()) do
+    if v ~= player then
+        v.CharacterAdded:Connect(onCharacterAdded)
+    end
+end
+Players.PlayerAdded:Connect(function(v)
+    if v ~= player then
+        v.CharacterAdded:Connect(onCharacterAdded)
+    end
+end)
+
+sectionCombat:Toggle({
+    Title = "เปิด/ปิด Head Script",
+    Value = _G.HeadScriptEnabled,
+    Callback = function(state)
+        _G.HeadScriptEnabled = state
+        if headConnection then
+            headConnection:Disconnect()
+            headConnection = nil
+        end
+        if state then
+            headConnection = RunService.Heartbeat:Connect(updateHead)
+        end
+    end
+})
+
+sectionCombat:Slider({
+    Title = "Head Size",
+    Value = { Min = 10, Max = 300, Default = _G.HeadSize },
+    Step = 1,
+    Callback = function(value)
+        _G.HeadSize = value
+        updateHead()
+    end
+})
+
+-- =========================
+-- แท็บมอง (ESP)
+-- =========================
+local tabESP = Window:Tab({ Title = "มอง", Icon = "eye" })
+local sectionESP = tabESP:Section({ Title = "ESP" })
+
+local ESPSettings = {
+    LineEnabled = false,
+    BoxEnabled = false,
+    NameEnabled = false,
+    LineColor = Color3.fromRGB(255,0,0),
+    BoxColor = Color3.fromRGB(0,255,0),
+    NameColor = Color3.fromRGB(255,255,255),
+    LineThickness = 2,
+    BoxSize = Vector2.new(30,30)
+}
+
+local ESPObjects = {}
+
+local function createESP(plr)
+    if plr == player then return end
+    ESPObjects[plr] = {
+        Line = Drawing.new("Line"),
+        Box = Drawing.new("Square"),
+        Name = Drawing.new("Text")
+    }
+    local obj = ESPObjects[plr]
+
+    obj.Line.Visible = ESPSettings.LineEnabled
+    obj.Line.Color = ESPSettings.LineColor
+    obj.Line.Thickness = ESPSettings.LineThickness
+    obj.Line.Transparency = 1
+    obj.Line.ZIndex = 2
+
+    obj.Box.Visible = ESPSettings.BoxEnabled
+    obj.Box.Color = ESPSettings.BoxColor
+    obj.Box.Thickness = 2
+    obj.Box.Filled = false
+    obj.Box.Transparency = 1
+    obj.Box.ZIndex = 2
+
+    obj.Name.Visible = ESPSettings.NameEnabled
+    obj.Name.Color = ESPSettings.NameColor
+    obj.Name.Size = 16
+    obj.Name.Center = true
+    obj.Name.Outline = true
+    obj.Name.ZIndex = 2
+end
+
+local function removeESP(plr)
+    local obj = ESPObjects[plr]
+    if obj then
+        for _, v in pairs(obj) do
+            v:Remove()
+        end
+        ESPObjects[plr] = nil
+    end
+end
+
+for _, plr in pairs(Players:GetPlayers()) do
+    createESP(plr)
+end
+Players.PlayerAdded:Connect(createESP)
+Players.PlayerRemoving:Connect(removeESP)
+
+RunService.RenderStepped:Connect(function()
+    for plr, obj in pairs(ESPObjects) do
+        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            local root = plr.Character.HumanoidRootPart
+            local screenPos, onScreen = Camera:WorldToViewportPoint(root.Position + Vector3.new(0,3,0))
+            if onScreen then
+                local pos = Vector2.new(screenPos.X, screenPos.Y)
+
+                obj.Line.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+                obj.Line.To = pos
+                obj.Line.Visible = ESPSettings.LineEnabled
+
+                obj.Box.Size = ESPSettings.BoxSize
+                obj.Box.Position = pos - ESPSettings.BoxSize/2
+                obj.Box.Visible = ESPSettings.BoxEnabled
+
+                obj.Name.Position = pos - Vector2.new(0, ESPSettings.BoxSize.Y/2 + 10)
+                obj.Name.Text = plr.Name
+                obj.Name.Visible = ESPSettings.NameEnabled
+            else
+                obj.Line.Visible = false
+                obj.Box.Visible = false
+                obj.Name.Visible = false
+            end
+        else
+            obj.Line.Visible = false
+            obj.Box.Visible = false
+            obj.Name.Visible = false
+        end
+    end
+end)
+
+-- =========================
+-- ESP Toggles
+-- =========================
+sectionESP:Toggle({
+    Title = "Line ESP",
+    Value = ESPSettings.LineEnabled,
+    Callback = function(state)
+        ESPSettings.LineEnabled = state
+        for _, obj in pairs(ESPObjects) do
+            obj.Line.Visible = state
+        end
+    end
+})
+
+sectionESP:Toggle({
+    Title = " Box ESP",
+    Value = ESPSettings.BoxEnabled,
+    Callback = function(state)
+        ESPSettings.BoxEnabled = state
+        for _, obj in pairs(ESPObjects) do
+            obj.Box.Visible = state
+        end
+        if state then
+            -- โหลดสคริปต์ Box ESP แยก
+            loadstring(game:HttpGet("https://rawscripts.net/raw/SCORCHED-EARTH-(beta)-BOX-ESP-22519"))()
+        end
+    end
+})
+
+sectionESP:Toggle({
+    Title = " Name ESP",
+    Value = ESPSettings.NameEnabled,
+    Callback = function(state)
+        ESPSettings.NameEnabled = state
+        for _, obj in pairs(ESPObjects) do
+            obj.Name.Visible = state
+        end
+    end
+})
