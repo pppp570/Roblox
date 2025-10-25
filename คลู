@@ -1,0 +1,330 @@
+-- ๐ข Full Optimized Auto Walk + Burrow + Fast Press + Toggle Script
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- เธเธธเธ”เน€เธ”เธดเธ
+local waitPoint = Vector3.new(-870.2, 19.7, -146.8)
+local targetPoint = Vector3.new(-357.2, 19.7, 80.0)
+
+-- เธชเธ–เธฒเธเธฐ global
+scriptEnabled = false
+isRunning = false
+stopRequested = false
+burrowEnabled = false
+fastPressEnabled = false
+ui = nil
+_FastPressListener = _FastPressListener or nil
+
+-- ๐”น เธเธฑเธเธเนเธเธฑเธเธชเธฃเนเธฒเธ UI เธเธฒเธกเธเธนเธ เธเธฃเนเธญเธก Fast Press Toggle
+local function createWalkUI()
+    local playerGui = player:WaitForChild("PlayerGui")
+    if playerGui:FindFirstChild("FarmUI") then
+        playerGui.FarmUI:Destroy()
+    end
+
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "FarmUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = playerGui
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0,260,0,160)
+    frame.Position = UDim2.new(0,12,0,12)
+    frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    frame.BorderSizePixel = 0
+    frame.Parent = screenGui
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1,-28,0,28)
+    title.Position = UDim2.new(0,6,0,6)
+    title.BackgroundTransparency = 1
+    title.Text = "เธเธฒเธกเธเธนเธ"
+    title.TextColor3 = Color3.fromRGB(255,255,255)
+    title.Font = Enum.Font.SourceSansBold
+    title.TextSize = 18
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = frame
+
+    local foldBtn = Instance.new("TextButton")
+    foldBtn.Size = UDim2.new(0,20,0,20)
+    foldBtn.Position = UDim2.new(1,-24,0,6)
+    foldBtn.BackgroundColor3 = Color3.fromRGB(150,0,0)
+    foldBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    foldBtn.Text = "X"
+    foldBtn.Font = Enum.Font.SourceSansBold
+    foldBtn.TextSize = 16
+    foldBtn.Parent = frame
+
+    local status = Instance.new("TextLabel")
+    status.Name = "StatusLabel"
+    status.Size = UDim2.new(1,-12,0,20)
+    status.Position = UDim2.new(0,6,0,36)
+    status.BackgroundTransparency = 1
+    status.Text = "Status: stopped"
+    status.TextColor3 = Color3.fromRGB(200,200,200)
+    status.Font = Enum.Font.SourceSans
+    status.TextSize = 14
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.Parent = frame
+
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Name = "ToggleBtn"
+    toggleBtn.Size = UDim2.new(1,-12,0,34)
+    toggleBtn.Position = UDim2.new(0,6,0,62)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    toggleBtn.Font = Enum.Font.SourceSansBold
+    toggleBtn.TextSize = 16
+    toggleBtn.Text = "Start"
+    toggleBtn.Parent = frame
+
+    local fastBtn = Instance.new("TextButton")
+    fastBtn.Size = UDim2.new(1,-12,0,30)
+    fastBtn.Position = UDim2.new(0,6,0,100)
+    fastBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    fastBtn.TextColor3 = Color3.fromRGB(255,255,0)
+    fastBtn.Font = Enum.Font.SourceSansBold
+    fastBtn.TextSize = 16
+    fastBtn.Text = "เธฅเธ”เน€เธงเธฅเธฒเธเธฒเธฃเธเธ”: OFF"
+    fastBtn.Parent = frame
+
+    local folded = false
+    foldBtn.MouseButton1Click:Connect(function()
+        folded = not folded
+        frame.Size = folded and UDim2.new(0,260,0,40) or UDim2.new(0,260,0,160)
+    end)
+
+    -- ๐”น Fast Press Function
+    local function updatePrompt(prompt)
+        if prompt:GetAttribute("OriginalHold") == nil then
+            prompt:SetAttribute("OriginalHold", prompt.HoldDuration)
+        end
+        prompt.HoldDuration = fastPressEnabled and 0.1 or (prompt:GetAttribute("OriginalHold") or 1)
+    end
+
+    local function applyFastPress()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("ProximityPrompt") then
+                updatePrompt(obj)
+            end
+        end
+        if not _FastPressListener then
+            _FastPressListener = workspace.DescendantAdded:Connect(function(obj)
+                if obj:IsA("ProximityPrompt") then
+                    updatePrompt(obj)
+                end
+            end)
+        end
+    end
+
+    fastBtn.MouseButton1Click:Connect(function()
+        fastPressEnabled = not fastPressEnabled
+        if fastPressEnabled then
+            fastBtn.Text = "เธฅเธ”เน€เธงเธฅเธฒเธเธฒเธฃเธเธ”: ON"
+            fastBtn.BackgroundColor3 = Color3.fromRGB(0,50,0)
+        else
+            fastBtn.Text = "เธฅเธ”เน€เธงเธฅเธฒเธเธฒเธฃเธเธ”: OFF"
+            fastBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+        end
+        applyFastPress()
+    end)
+
+    return { Frame=frame, Toggle=toggleBtn, Status=status, FastBtn=fastBtn }
+end
+
+-- ๐”น UI Toggle Burrow
+local function createBurrowUI()
+    local playerGui = player:WaitForChild("PlayerGui")
+    if playerGui:FindFirstChild("BurrowUI") then
+        playerGui.BurrowUI:Destroy()
+    end
+
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "BurrowUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = playerGui
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0,120,0,60)
+    frame.Position = UDim2.new(0,280,0,12)
+    frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    frame.BorderSizePixel = 0
+    frame.Parent = screenGui
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1,-12,0,24)
+    label.Position = UDim2.new(0,6,0,6)
+    label.BackgroundTransparency = 1
+    label.Text = "เธกเธธเธ”เธ”เธดเธ:"
+    label.TextColor3 = Color3.fromRGB(255,255,255)
+    label.Font = Enum.Font.SourceSansBold
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0,24,0,24)
+    toggle.Position = UDim2.new(1,-30,0,6)
+    toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    toggle.TextColor3 = Color3.fromRGB(255,0,0)
+    toggle.Text = "X"
+    toggle.Font = Enum.Font.SourceSansBold
+    toggle.TextSize = 16
+    toggle.Parent = frame
+
+    toggle.MouseButton1Click:Connect(function()
+        burrowEnabled = not burrowEnabled
+        if burrowEnabled then
+            toggle.Text = "โ“"
+            toggle.TextColor3 = Color3.fromRGB(0,255,0)
+        else
+            toggle.Text = "X"
+            toggle.TextColor3 = Color3.fromRGB(255,0,0)
+        end
+    end)
+end
+
+-- ๐”น เน€เธ”เธดเธเนเธฅเธฐเธกเธธเธ”เธ”เธดเธ
+local function walkAndBurrow(char, destination, speed)
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    if burrowEnabled then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 1
+                part.CanCollide = false
+            end
+        end
+    end
+    local startPos = hrp.Position
+    local dist = (destination - startPos).Magnitude
+    local step = speed/20
+    local traveled = 0
+    while traveled < dist do
+        if stopRequested then break end
+        traveled += step
+        hrp.CFrame = CFrame.new(startPos + (destination - startPos).Unit * math.min(traveled,dist))
+        task.wait(0.05)
+    end
+    if burrowEnabled then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 0
+                part.CanCollide = true
+            end
+        end
+    end
+end
+
+-- ๐”น Auto Walk Loop
+local function autoWalkLoop()
+    isRunning = true
+    ui.Status.Text = "Status: running"
+    ui.Toggle.Text = "Stop"
+
+    while isRunning do
+        if stopRequested then break end
+        local char = player.Character or player.CharacterAdded:Wait()
+        walkAndBurrow(char, waitPoint, 60)
+        if stopRequested then break end
+        task.wait(0.1)
+        fireproximityprompt(workspace.DeliverySystem.DontDeleteTheseObjects.GetJobPart.ProximityPrompt)
+        task.wait(0.1)
+        walkAndBurrow(char, targetPoint, 60)
+        if stopRequested then break end
+        task.wait(0.1)
+        fireproximityprompt(workspace.DeliverySystem.DontDeleteTheseObjects.TargetPart.ProximityPrompt)
+        task.wait(0.1)
+    end
+
+    isRunning = false
+    stopRequested = false
+    if ui then
+        ui.Status.Text = "Status: stopped"
+        ui.Toggle.Text = "Start"
+    end
+end
+
+-- ๐”น Script Toggle Button
+local function createScriptToggleButton()
+    local playerGui = player:WaitForChild("PlayerGui")
+    if playerGui:FindFirstChild("ScriptToggleUI") then
+        playerGui.ScriptToggleUI:Destroy()
+    end
+
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ScriptToggleUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = playerGui
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0,60,0,60)
+    frame.Position = UDim2.new(0,12,0,180)
+    frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    frame.BackgroundTransparency = 0.2
+    frame.Parent = screenGui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.5,0)
+    corner.Parent = frame
+
+    local button = Instance.new("ImageButton")
+    button.Size = UDim2.new(1,0,1,0)
+    button.Position = UDim2.new(0,0,0,0)
+    button.BackgroundTransparency = 1
+    button.Image = "rbxassetid://13839361962"
+    button.ScaleType = Enum.ScaleType.Fit
+    button.AutoButtonColor = true
+    button.Parent = frame
+
+    button.MouseButton1Click:Connect(function()
+        scriptEnabled = not scriptEnabled
+        if scriptEnabled then
+            if not player.PlayerGui:FindFirstChild("FarmUI") then
+                ui = createWalkUI()
+                ui.Toggle.MouseButton1Click:Connect(function()
+                    if isRunning then
+                        stopRequested = true
+                        ui.Status.Text = "Status: stopping..."
+                        ui.Toggle.Text = "Stopping..."
+                    else
+                        task.spawn(autoWalkLoop)
+                    end
+                end)
+            end
+            if not player.PlayerGui:FindFirstChild("BurrowUI") then
+                createBurrowUI()
+            end
+        else
+            stopRequested = true
+            isRunning = false
+            if player.PlayerGui:FindFirstChild("FarmUI") then player.PlayerGui.FarmUI:Destroy() end
+            if player.PlayerGui:FindFirstChild("BurrowUI") then player.PlayerGui.BurrowUI:Destroy() end
+        end
+    end)
+end
+
+-- ๐”น Respawn UI
+player.CharacterAdded:Connect(function()
+    task.wait(0.5)
+    if scriptEnabled then
+        if not player.PlayerGui:FindFirstChild("FarmUI") then
+            ui = createWalkUI()
+            ui.Toggle.MouseButton1Click:Connect(function()
+                if isRunning then
+                    stopRequested = true
+                    ui.Status.Text = "Status: stopping..."
+                    ui.Toggle.Text = "Stopping..."
+                else
+                    task.spawn(autoWalkLoop)
+                end
+            end)
+        end
+        if not player.PlayerGui:FindFirstChild("BurrowUI") then
+            createBurrowUI()
+        end
+    end
+end)
+
+-- ๐”น เน€เธฃเธดเนเธกเธ•เนเธเธชเธฃเนเธฒเธเธเธธเนเธก Toggle Script
+createScriptToggleButton()
