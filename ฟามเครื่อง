@@ -1,0 +1,114 @@
+-- 🌿 AutoFarm UI (WindUI Style)
+if game:GetService("CoreGui"):FindFirstChild("AutoFarmUI") then
+    game:GetService("CoreGui"):FindFirstChild("AutoFarmUI"):Destroy()
+end
+
+-- ⚙️ ตัวแปรหลัก
+_G.AutoFarm = false
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+-- 🪟 สร้าง UI หลัก
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AutoFarmUI"
+ScreenGui.Parent = game:GetService("CoreGui")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 230, 0, 120)
+Frame.Position = UDim2.new(0.5, -115, 0.4, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner", Frame)
+UICorner.CornerRadius = UDim.new(0, 12)
+
+-- 🌈 เงา
+local shadow = Instance.new("ImageLabel")
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageTransparency = 0.6
+shadow.Size = UDim2.new(1, 20, 1, 20)
+shadow.Position = UDim2.new(0, -10, 0, -10)
+shadow.BackgroundTransparency = 1
+shadow.ZIndex = 0
+shadow.Parent = Frame
+
+-- 🧾 ชื่อ UI
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundTransparency = 1
+Title.Text = "🌿 So Hub"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Parent = Frame
+
+-- 🔘 ปุ่มเปิด/ปิด
+local Toggle = Instance.new("TextButton")
+Toggle.Size = UDim2.new(0.8, 0, 0, 40)
+Toggle.Position = UDim2.new(0.1, 0, 0.4, 0)
+Toggle.Text = "🔴 AutoFarm: OFF"
+Toggle.Font = Enum.Font.GothamBold
+Toggle.TextSize = 18
+Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+Toggle.TextColor3 = Color3.fromRGB(255, 100, 100)
+Toggle.Parent = Frame
+
+local UICorner2 = Instance.new("UICorner", Toggle)
+UICorner2.CornerRadius = UDim.new(0, 10)
+
+-- ❌ ปุ่มปิด UI
+local Close = Instance.new("TextButton")
+Close.Size = UDim2.new(0, 25, 0, 25)
+Close.Position = UDim2.new(1, -30, 0, 5)
+Close.Text = "✖"
+Close.Font = Enum.Font.GothamBold
+Close.TextSize = 16
+Close.BackgroundTransparency = 1
+Close.TextColor3 = Color3.fromRGB(255, 255, 255)
+Close.Parent = Frame
+
+Close.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    _G.AutoFarm = false
+end)
+
+-- 🧠 ฟังก์ชันหลัก
+function StartAutoFarm()
+    task.spawn(function()
+        while _G.AutoFarm do
+            task.wait(0.2)
+
+            local targetFolder = workspace["\224\184\135\224\184\178\224\184\153\224\184\159\224\184\178\224\184\163\224\185\140\224\184\161\224\184\151\224\184\179\224\184\135\224\184\178\224\184\153\224\184\151\224\184\177\224\185\136\224\184\167\224\185\132\224\184\155"]
+            if targetFolder then
+                for _, obj in pairs(targetFolder:GetDescendants()) do
+                    if obj:IsA("ProximityPrompt") then
+                        local parent = obj.Parent
+                        if parent and parent:IsA("BasePart") then
+                            local dist = (hrp.Position - parent.Position).Magnitude
+                            if dist <= 50 then
+                                fireproximityprompt(obj)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- 🎮 เมื่อกดปุ่ม
+Toggle.MouseButton1Click:Connect(function()
+    _G.AutoFarm = not _G.AutoFarm
+    if _G.AutoFarm then
+        Toggle.Text = "🟢 เริ่มฟาม"
+        Toggle.TextColor3 = Color3.fromRGB(100, 255, 100)
+        StartAutoFarm()
+    else
+        Toggle.Text = "🔴 หยุดฟาม"
+        Toggle.TextColor3 = Color3.fromRGB(255, 100, 100)
+    end
+end)
