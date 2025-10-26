@@ -1,0 +1,127 @@
+-- โหลด WindUI
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+WindUI.TransparencyValue = 0.2
+WindUI:SetTheme("Dark")
+
+local Window = WindUI:CreateWindow({
+    Title = "So Hub",
+    Icon = "bot",
+    Author = "รวมอาชีวะฝั่งราม",
+    Folder = "AutoFarmUI",
+    Size = UDim2.fromOffset(580, 490),
+    Theme = "Dark",
+})
+
+-- Section สำหรับ AutoFarm
+local Sections = {
+    Main = Window:Section({ Title = "AutoFarm", Opened = true }),
+}
+local Tabs = {
+    Features = Sections.Main:Tab({ Title = "Features", Icon = "cpu" }),
+}
+
+-- ตัวแปร AutoFarm
+_G.AutoFarm = false
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local taskDelay = 0.05
+
+-- รวม Targets (ตรวจสอบ nil)
+local promptTargets = {
+    workspace:FindFirstChild("\224\184\151\224\184\181\224\185\136\224\184\159\224\184\178\224\184\163\224\185\140\224\184\161\224\184\156\224\184\177\224\184\129") and
+    workspace["\224\184\151\224\184\181\224\185\136\224\184\159\224\184\178\224\184\163\224\185\140\224\184\161\224\184\156\224\184\177\224\184\129"]:FindFirstChild("\224\184\159\224\184\178\224\184\163\224\185\140\224\184\161") or nil
+}
+
+-- ฟังก์ชัน AutoFarm
+local function StartAutoFarm()
+    _G.AutoFarm = true
+    spawn(function()
+        while _G.AutoFarm do
+            for _, target in pairs(promptTargets) do
+                if target and target:IsA("Instance") then
+                    for _, obj in pairs(target:GetDescendants()) do
+                        if obj:IsA("ProximityPrompt") then
+                            -- ป้องกัน error
+                            pcall(function()
+                                fireproximityprompt(obj, 0)
+                            end)
+                        end
+                    end
+                end
+            end
+            task.wait(taskDelay)
+        end
+    end)
+end
+
+local function StopAutoFarm()
+    _G.AutoFarm = false
+end
+
+-- Toggle เปิด/ปิด AutoFarm
+Tabs.Features:Toggle({
+    Title = "Enable AutoFarm",
+    Value = false,
+    Callback = function(state)
+        if state then
+            StartAutoFarm()
+        else
+            StopAutoFarm()
+        end
+    end
+})
+
+-- Slider ปรับ Delay
+Tabs.Features:Slider({
+    Title = "AutoFarm Delay",
+    Value = { Min = 0.01, Max = 0.2, Default = 0.05 },
+    Step = 0.01,
+    Callback = function(value)
+        taskDelay = value
+    end
+})
+
+-- ปุ่ม Reload Targets
+Tabs.Features:Button({
+    Title = "Reload Targets",
+    Icon = "refresh-cw",
+    Callback = function()
+        promptTargets = {
+            workspace:FindFirstChild("\224\184\151\224\184\181\224\185\136\224\184\159\224\184\178\224\184\163\224\185\140\224\184\161\224\184\156\224\184\177\224\184\129") and
+            workspace["\224\184\151\224\184\181\224\185\136\224\184\159\224\184\178\224\184\163\224\185\140\224\184\161\224\184\156\224\184\177\224\184\129"]:FindFirstChild("\224\184\159\224\184\178\224\184\163\224\185\140\224\184\161") or nil
+        }
+        WindUI:Notify({
+            Title = "AutoFarm",
+            Content = "Targets reloaded!",
+            Duration = 2
+        })
+    end
+})
+
+-- ปุ่ม Notification Test
+Tabs.Features:Button({
+    Title = "Test Notification",
+    Icon = "bell",
+    Callback = function()
+        WindUI:Notify({
+            Title = "Hello",
+            Content = "AutoFarm UI is working!",
+            Duration = 2
+        })
+    end
+})
+
+-- Theme Switcher
+Window:CreateTopbarButton("theme-switcher", "moon", function()
+    WindUI:SetTheme(WindUI:GetCurrentTheme() == "Dark" and "Light" or "Dark")
+    WindUI:Notify({
+        Title = "Theme Changed",
+        Content = "Current theme: "..WindUI:GetCurrentTheme(),
+        Duration = 2
+    })
+end, 990)
+
+-- ปิด UI ปิด AutoFarm
+Window:OnClose(function()
+    _G.AutoFarm = false
+end)
