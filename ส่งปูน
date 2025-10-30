@@ -1,0 +1,280 @@
+-- เธ•เธฑเธงเธญเธขเนเธฒเธ LocalScript
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+-- เธ•เธฑเนเธเธเนเธฒเธ•เธฑเธง Part เธ—เธตเนเธเธฐเธ”เธถเธ
+local targetPart = workspace.DeliverySystem.DontDeleteTheseObjects.TargetPart -- เน€เธเธฅเธตเนเธขเธเธเธทเนเธญ Part
+local moveToCFrame = CFrame.new(-952.975281, 18.3617821, 324.194092, 0, 0, 1, 1, 0, 0, 0, 1, 0) -- เธเธฐเธ”เธถเธเนเธเธ•เธณเนเธซเธเนเธเธ•เธฑเธงเน€เธฃเธฒ
+-- เธเธฑเธเธเนเธเธฑเธเธ”เธถเธ part เธกเธฒเธ—เธตเนเน€เธฃเธทเนเธญเธข เน
+local function pullPart()
+    targetPart.Anchored = true -- เธเนเธญเธเธเธฑเธเธเธฒเธฃเธซเธฅเธธเธ”
+    targetPart.CFrame = moveToCFrame
+end
+
+-- เน€เธฃเธตเธขเธเนเธเน
+pullPart()
+
+-- เธ•เธฑเธงเนเธเธฃเธซเธฅเธฑเธ
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- Points
+local waitPoint = Vector3.new(-870.2, 19.7, -146.8)
+local secondPoint = Vector3.new(-430.7, 19.7, -49.5)
+local targetPoint = Vector3.new(-357.2, 19.7, 80.0)
+local moveToCFrame = CFrame.new(-952.975281, 18.3617821, 324.194092, 0, 0, 1, 1, 0, 0, 0, 1, 0)
+
+-- เธ•เธฑเธงเนเธเธฃ
+local scriptEnabled = false
+local isRunning = false
+local stopRequested = false
+local burrowEnabled = false
+local fastPressEnabled = false
+local _FastPressListener = nil
+
+-- เธเธฑเธเธเนเธเธฑเธเธเธฑเธเธเธฑเธเธฅเธธเธเน€เธกเธทเนเธญเธเธเธงเนเธฒเธเธฑเนเธ
+local function forceStand(char)
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid:GetPropertyChangedSignal("Sit"):Connect(function()
+            if humanoid.Sit then
+                humanoid.Sit = false
+            end
+        end)
+        
+        task.spawn(function()
+            while char.Parent do
+                if humanoid.Sit then
+                    humanoid.Sit = false
+                end
+                task.wait(0.1)
+            end
+        end)
+    end
+end
+
+-- เน€เธฃเธตเธขเธเนเธเนเธ—เธฑเธเธ—เธตเธ•เธญเธเน€เธฃเธดเนเธกเธชเธเธฃเธดเธเธ•เน
+local character = player.Character or player.CharacterAdded:Wait()
+forceStand(character)
+
+player.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    forceStand(char)
+end)
+
+-- Fast Press System
+local function updatePrompt(prompt)
+    if prompt:GetAttribute("OriginalHold") == nil then
+        prompt:SetAttribute("OriginalHold", prompt.HoldDuration)
+    end
+    prompt.HoldDuration = fastPressEnabled and 0.1 or (prompt:GetAttribute("OriginalHold") or 1)
+end
+
+local function applyFastPress()
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("ProximityPrompt") then
+            updatePrompt(obj)
+        end
+    end
+    if not _FastPressListener then
+        _FastPressListener = workspace.DescendantAdded:Connect(function(obj)
+            if obj:IsA("ProximityPrompt") then
+                updatePrompt(obj)
+            end
+        end)
+    end
+end
+
+-- Walk + Burrow
+local function walkAndBurrow(char, destination, speed)
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    
+    if burrowEnabled then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 1
+                part.CanCollide = false
+            end
+        end
+    end
+    
+    local startPos = hrp.Position
+    local dist = (destination - startPos).Magnitude
+    local step = speed / 9
+    local traveled = 0
+    
+    while traveled < dist do
+        if stopRequested then break end
+        traveled += step
+        hrp.CFrame = CFrame.new(startPos + (destination - startPos).Unit * math.min(traveled, dist))
+        task.wait(0.05)
+    end
+    
+    if burrowEnabled then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 0
+                part.CanCollide = true
+            end
+        end
+    end
+end
+
+-- Main Auto Walk Loop
+local function autoWalkLoop()
+    isRunning = true
+    
+    while isRunning do
+        if stopRequested then break end
+        local char = player.Character or player.CharacterAdded:Wait()
+        
+        walkAndBurrow(char, waitPoint, 60)
+        if stopRequested then break end
+        task.wait(0.2)
+        fireproximityprompt(workspace.DeliverySystem.DontDeleteTheseObjects.GetJobPart.ProximityPrompt)
+        
+        walkAndBurrow(char, secondPoint, 60)
+        if stopRequested then break end
+        task.wait(0.2)
+        
+        walkAndBurrow(char, targetPoint, 60)
+        if stopRequested then break end
+        task.wait(0.2)
+        fireproximityprompt(workspace.DeliverySystem.DontDeleteTheseObjects.TargetPart.ProximityPrompt)
+        task.wait(0.2)
+    end
+    
+    isRunning = false
+    stopRequested = false
+end
+
+-- WindUI Setup
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+local Window = WindUI:CreateWindow({
+    Title = "So hub - Auto Farm",
+    Icon = "shell",
+    Author = "by : SohubTeam",
+    Folder = "Sohub",
+    Size = UDim2.fromOffset(380, 350),
+    Transparent = true,
+    Theme = "Dark",
+    SideBarWidth = 130,
+    HasOutline = false,
+})
+
+Window:Tag({
+    Title = "Premium",
+    Color = Color3.fromHex("#30ff6a"),
+    Radius = 13,
+})
+
+Window:Tag({
+    Title = "Racha Achiwa",
+    Color = Color3.fromHex("#FFFF00"),
+    Radius = 13,
+})
+
+-- Farm Tab
+local FarmTab = Window:Tab({
+    Title = "Farm",
+    Icon = "pickaxe",
+})
+
+FarmTab:Section({
+    Title = "Auto Farm Controls"
+})
+
+local AutoFarmToggle = FarmTab:Toggle({
+    Title = "Auto Farm",
+    Desc = "เน€เธเธดเธ”/เธเธดเธ” Auto Farm",
+    Value = false,
+    Callback = function(value)
+        scriptEnabled = value
+        if value then
+            if not isRunning then
+                task.spawn(autoWalkLoop)
+            end
+        else
+            stopRequested = true
+            isRunning = false
+        end
+    end
+})
+
+local BurrowToggle = FarmTab:Toggle({
+    Title = "Burrow Mode",
+    Desc = "เน€เธ”เธดเธเธ—เธฐเธฅเธธเธเธณเนเธเธ (NoClip)",
+    Value = false,
+    Callback = function(value)
+        burrowEnabled = value
+    end
+})
+
+local FastPressToggle = FarmTab:Toggle({
+    Title = "Fast Press",
+    Desc = "เธเธ”เธเธธเนเธก E เน€เธฃเนเธงเธเธถเนเธ",
+    Value = false,
+    Callback = function(value)
+        fastPressEnabled = value
+        applyFastPress()
+    end
+})
+
+-- Settings Tab
+local SettingsTab = Window:Tab({
+    Title = "Settings",
+    Icon = "settings",
+})
+
+SettingsTab:Section({
+    Title = "เธ•เธฑเธงเน€เธฅเธทเธญเธเน€เธเธดเนเธกเน€เธ•เธดเธก"
+})
+
+SettingsTab:Button({
+    Title = "Reset All",
+    Desc = "เธฃเธตเน€เธเนเธ•เธเธฒเธฃเธ•เธฑเนเธเธเนเธฒเธ—เธฑเนเธเธซเธกเธ”",
+    Callback = function()
+        stopRequested = true
+        isRunning = false
+        scriptEnabled = false
+        burrowEnabled = false
+        fastPressEnabled = false
+        
+        if AutoFarmToggle then AutoFarmToggle:SetValue(false) end
+        if BurrowToggle then BurrowToggle:SetValue(false) end
+        if FastPressToggle then FastPressToggle:SetValue(false) end
+    end
+})
+
+-- Info Tab
+local InfoTab = Window:Tab({
+    Title = "Info",
+    Icon = "info",
+})
+
+InfoTab:Section({
+    Title = "เธเนเธญเธกเธนเธฅเธชเธเธฃเธดเธเธ•เน"
+})
+
+InfoTab:Label({
+    Title = "Version",
+    Value = "2.0 - WindUI Edition"
+})
+
+InfoTab:Label({
+    Title = "Status",
+    Value = "Active"
+})
+
+InfoTab:Paragraph({
+    Title = "เธเธณเนเธเธฐเธเธณ",
+    Desc = "1. เน€เธเธดเธ” Auto Farm เน€เธเธทเนเธญเน€เธฃเธดเนเธกเธเธฒเธฃเนเธก\n2. เน€เธเธดเธ” Burrow เธซเธฒเธเธ•เนเธญเธเธเธฒเธฃเธ—เธฐเธฅเธธเธเธณเนเธเธ\n3. เน€เธเธดเธ” Fast Press เน€เธเธทเนเธญเธเธ” E เน€เธฃเนเธงเธเธถเนเธ"
+})
+
+print("โ… Auto Farm Script with WindUI Loaded!")
+print("๐ฏ เธเธ” Toggle เน€เธเธทเนเธญเน€เธฃเธดเนเธกเนเธเนเธเธฒเธ")
