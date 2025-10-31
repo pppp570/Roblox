@@ -1,0 +1,7 @@
+local old; old = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    if (method == "Kick" or method == "kick") and not checkcaller() then
+        return nil
+    end
+    return old(self, ...)
+end)
