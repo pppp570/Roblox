@@ -1,0 +1,121 @@
+-- Load WindUI
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+
+WindUI:SetTheme("Dark")
+WindUI.TransparencyValue = 0.15
+
+-- Main Window
+local Window = WindUI:CreateWindow({
+    Title = "FPS Boost Controller",
+    Icon = "cpu",
+    Author = "So hub FPS",
+    Folder = "PerfVisualUI",
+    Size = UDim2.fromOffset(520, 420),
+    Theme = "Dark",
+})
+
+------------------------------------------------------------
+-- Toggle UI with RightCtrl
+------------------------------------------------------------
+local UIS = game:GetService("UserInputService")
+local uiVisible = true
+
+UIS.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode == Enum.KeyCode.RightControl then
+		uiVisible = not uiVisible
+		Window:Toggle(uiVisible)
+	end
+end)
+
+------------------------------------------------------------
+-- Tab 1: FPS Boost
+------------------------------------------------------------
+local MainSection = Window:Section({ Title = "Performance Tools", Opened = true })
+local FPSTab = MainSection:Tab({ Title = "FPS Booster", Icon = "zap" })
+
+local FPSRunning = false
+FPSTab:Toggle({
+    Title = "Enable FPS Boost",
+    Value = false,
+    Callback = function(state)
+        FPSRunning = state
+        if state then
+            WindUI:Notify({
+                Title = "FPS BOOST",
+                Content = "FPS Boost Activated",
+                Icon = "check",
+                Duration = 3
+            })
+            loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-FPS-BOOST-2022-3864"))()
+        else
+            WindUI:Notify({
+                Title = "FPS BOOST",
+                Content = "Disabled. To revert, reset graphics in Roblox Settings.",
+                Icon = "alert-triangle",
+                Duration = 4
+            })
+        end
+    end
+})
+
+------------------------------------------------------------
+-- Tab 2: Shader
+------------------------------------------------------------
+local ShaderTab = MainSection:Tab({ Title = "Visual Shader", Icon = "sun" })
+
+local ShaderRunning = false
+ShaderTab:Toggle({
+    Title = "Enable Simple Shader",
+    Value = false,
+    Callback = function(state)
+        ShaderRunning = state
+        if state then
+            WindUI:Notify({
+                Title = "Simple Shader",
+                Content = "Shader Activated",
+                Icon = "sun",
+                Duration = 3
+            })
+            loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Simple-Shader-37434"))()
+        else
+            WindUI:Notify({
+                Title = "Simple Shader",
+                Content = "Shader Disabled. Rejoin to remove effects.",
+                Icon = "moon",
+                Duration = 4
+            })
+        end
+    end
+})
+
+------------------------------------------------------------
+-- Tab 3: Utilities
+------------------------------------------------------------
+local UtilityTab = MainSection:Tab({ Title = "Utilities", Icon = "settings" })
+
+UtilityTab:Button({
+    Title = "Reset Graphics (Roblox Default)",
+    Icon = "refresh-cw",
+    Callback = function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
+        game.Lighting.GlobalShadows = true
+        game.Lighting.FogEnd = 100000
+        game.Lighting.Brightness = 2
+        WindUI:Notify({
+            Title = "Reset Complete",
+            Content = "Graphics reset to default",
+            Duration = 3
+        })
+    end
+})
+
+------------------------------------------------------------
+-- UI Startup Notification
+------------------------------------------------------------
+WindUI:Notify({
+    Title = "WindUI Controller",
+    Content = "Press Right Ctrl to toggle UI.",
+    Icon = "keyboard",
+    Duration = 5
+})
