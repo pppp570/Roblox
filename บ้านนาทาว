@@ -1,0 +1,1102 @@
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+local Window = WindUI:CreateWindow({
+Title = "So  Hub",
+Icon = "circle-user-round", -- lucide icon. optional
+Author ="สคริปภาษาไทย ", -- optional
+})
+local Tab = Window:Tab({
+Title = "วาป",
+Icon = "map-pin", -- optional
+Locked = false,
+})
+local Button = Tab:Button({
+Title = "เซฟโซน",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(506.45, 9.67, 212.97)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "โรงบาล",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-195.55, 28.12, 1416.56)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "เซเว่น",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-297.97, 18.47, 1246.76)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "สถานีตำรวจ",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(789.59, 18.85, -113.77)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ร้านปืน",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(500.72, 6.92, 1144.45)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ร้านซื้อของ",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-248.68, 50.32, -32.23)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "วัด",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(53.61, 7.02, 200.59)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ที่ตกปลา",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-127.61, 6.91, -501.78)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ร้านขายของ",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(638.53, 6.67, 170.33)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+WindUI:Notify({
+Title = "✅รันติด✅",
+Content = "ขอบคุณที่ใช้บริการ",
+Duration = 3, -- 3 seconds
+Icon = "check-line",
+})
+local Tab = Window:Tab({
+Title = "ฟามต่างๆ",
+Icon = "map-pin", -- optional
+Locked = false,
+})
+local Button = Tab:Button({
+Title = "ฟามข้าวโพด",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-4838.09, 91.69, -3636.90)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ฟามกล้วย",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-4709.65, 30.98, -2774.25)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ฟามส้ม",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-3666.40, 31.26, -3882.36)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ฟามแอปเปิ้ล",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-2056.50, 29.58, -3247.04)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ฟามไก่",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-3091.42, 60.00, -1537.93)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ฟามองุน",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-3566.90, 42.29, -184.11)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ฟามสตอเบอรี่",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-4418.62, 36.47, 553.61)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ฟามสัปรด",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-2381.63, 41.79, 823.72)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ฟามมะม่วง",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-1650.90, 73.94, -26.92)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ฟามเนื้อ",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-1419.81, 16.62, -160.13)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ฟามไม้",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-1445.59, 16.43, -344.06)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "เมล่อน",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-1768.65, 16.43, -1912.58)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ฟามข้าว",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-1287.27, 16.46, 908.87)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Tab = Window:Tab({
+Title = "งานดํา",
+Icon = "map-pin", -- optional
+Locked = false,
+})
+local Button = Tab:Button({
+Title = "ปูน1",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-284.81, 11.28, 192.55)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ปูน2",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(162.66, 50.28, 1567.61)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "ปูน3",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition =Vector3.new(-296.30, 11.28, -134.78)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "จกสายไฟ1",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(1158.14, 12.09, -3.23)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "จกสายไฟ2",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(517.69, 12.38, 40.71)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})local Button = Tab:Button({
+Title = "จกสายไฟ3",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-139.45, 12.11, 129.82)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "จกสายไฟ4",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(786.29, 12.16, 305.06)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "จกสายไฟ5",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(469.53, 11.89, 966.51)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Button = Tab:Button({
+Title = "จกสายไฟ6",
+Desc = "กดเพื่อวาป",
+Locked = false,
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-424.98, 12.11, 1014.93)
+local function WarpToPosition()
+root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+local Tab = Window:Tab({
+Title = "ทั่วไป",
+Icon = "users", -- optional
+Locked = false,
+})
+-- สร้าง Toggle
+local Toggle = Tab:Toggle({
+Title = "วิ่งเร็ว",
+Desc = "เปิด/ปิด",
+Default = true, -- เริ่มต้นเปิด
+Callback = function(state)
+if state then
+print("สวิตช์เปิดอยู่")
+game.Players.LocalPlayer.Character.Humanoid.WalkSpeed=16
+else
+print("สวิตช์ถูกปิด")
+game.Players.LocalPlayer.Character.Humanoid.WalkSpeed=16
+end
+end
+})
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- สร้าง Slider
+local Slider = Tab:Slider({
+    Title = "WalkSpeed",
+    Desc = "ปรับความเร็วเดินของตัวละคร",
+    Step = 1, -- เลื่อนทีละ 1
+    Value = {
+        Min = 16,    -- ความเร็วเดินต่ำสุด (ค่า default Roblox)
+        Max = 200,   -- ความเร็วเดินสูงสุด
+        Default = 16, -- เริ่มต้นที่ 16
+    },
+    Callback = function(value)
+        -- เช็คว่าตัวละครมี Humanoid
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = value
+        end
+        print("WalkSpeed ปัจจุบัน:", value)
+    end
+})
+local Toggle = Tab:Toggle({
+Title = "กระโดดไม่จํากัด",
+Desc = "เปิด/ปิด",
+Default = true, -- เริ่มต้นเปิด
+Callback = function(state)
+if state then
+print("สวิตช์เปิดอยู่")
+-- 🌟 Infinite Jump Script 🌟
+local Player = game:GetService("Players").LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+
+-- เปิด/ปิดกระโดดไม่จำกัด
+_G.InfiniteJumpEnabled = true
+
+UserInputService.JumpRequest:Connect(function()
+if _G.InfiniteJumpEnabled then
+Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+end
+end)
+else
+print("สวิตช์ถูกปิด")
+_G.InfiniteJumpEnabled = false
+end
+end
+})
+local Tab = Window:Tab({
+Title = "ฟาม",
+Icon = "axe",
+Locked = false,
+})
+-- ⚙️ ตั้งค่าพื้นฐาน
+_G.AutoFarm = false
+_G.AutoFarmDelayBeforePress = 0.5 -- หน่วงเวลาก่อนกด (วินาที)
+_G.AutoFarmDelayAfterPress = 2 -- หน่วงหลังเก็บเสร็จ (วินาที)
+
+-- 🔢 ลำดับต้นมะม่วง
+local mangoIndexes = {7, 5, 10, 8, 3, 6, 7, 4, 9}
+
+-- 🧍 ตัวแปรหลัก
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+-- 🍋 ฟังก์ชันฟามมะม่วง
+local function startAutoFarm()
+    task.spawn(function()
+        while _G.AutoFarm do
+            local mangoFolder = workspace:FindFirstChild("Plants") and workspace.Plants:FindFirstChild("Mango")
+            if not mangoFolder then
+                task.wait(1)
+                continue
+            end
+
+            for _, index in ipairs(mangoIndexes) do
+                if not _G.AutoFarm then break end
+
+                local plant = mangoFolder:GetChildren()[index]
+                if plant then
+                    local prompts = {}
+                    for _, obj in pairs(plant:GetDescendants()) do
+                        if obj:IsA("ProximityPrompt") then
+                            table.insert(prompts, obj)
+                        end
+                    end
+
+                    if #prompts > 0 then
+                        local mangoPart = plant:FindFirstChildWhichIsA("BasePart", true)
+                        if mangoPart then
+                            -- 🔹 วาปไปต้นนั้น
+                            rootPart.CFrame = mangoPart.CFrame + Vector3.new(0, 3, 0)
+
+                            -- ⏳ หน่วงเวลาก่อนกด (ค่าเริ่มต้น 2 วิ)
+                            task.wait(_G.AutoFarmDelayBeforePress)
+
+                            -- 🖱️ กดเก็บผลมะม่วง
+                            for _, prompt in ipairs(prompts) do
+                                pcall(fireproximityprompt, prompt)
+                            end
+
+                            -- ⌛ หน่วงหลังเก็บเสร็จ (ค่าเริ่มต้น 3 วิ)
+                            task.wait(_G.AutoFarmDelayAfterPress)
+                        end
+                    end
+                end
+
+                task.wait(0.1)
+            end
+        end
+    end)
+end
+
+-- ✅ Toggle ควบคุม
+local Toggle = Tab:Toggle({
+    Title = "ฟามมะม่วง",
+    Desc = "ถือตะกล้าก่อนเปิด",
+    Default = false,
+    Callback = function(state)
+        _G.AutoFarm = state
+        if state then
+            print("✅ เริ่มฟาร์มมะม่วงแล้ว")
+            WindUI:Notify({
+                Title = "ฟามมะม่วง",
+                Content = "🍋 เริ่มทำงาน",
+                Duration = 2,
+                Icon = "check-circle",
+            })
+            startAutoFarm()
+        else
+            print("⛔ หยุดฟาร์มมะม่วงแล้ว")
+            WindUI:Notify({
+                Title = "AutoFarm มะม่วง",
+                Content = "⛔ หยุดทำงาน",
+                Duration = 2,
+                Icon = "x-circle",
+            })
+        end
+    end
+})
+
+local Toggle = Tab:Toggle({
+Title = "ฟามวัว",
+Desc = "ถือมีดก่อนเปิด",
+Default = false,
+Callback = function(state)
+if state then
+print("✅ เริ่มฟาร์มวัวแล้ว")
+_G.AutoCow = true
+
+local Players = game:GetService("Players")  
+        local player = Players.LocalPlayer  
+        local character = player.Character or player.CharacterAdded:Wait()  
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")  
+
+        local plantIndexes = {8, 6, 9, 8, 7}  
+        local plantsFolder = workspace:FindFirstChild("Plants") and workspace.Plants:FindFirstChild("Cow")  
+
+        task.spawn(function()  
+            while _G.AutoCow do  
+                if not plantsFolder then  
+                    task.wait(1)  
+                    plantsFolder = workspace:FindFirstChild("Plants") and workspace.Plants:FindFirstChild("Cow")  
+                    continue  
+                end  
+
+                for _, index in ipairs(plantIndexes) do  
+                    if not _G.AutoCow then break end  
+
+                    local cow = plantsFolder:GetChildren()[index]  
+                    if cow then  
+                        local prompts = {}  
+                        for _, obj in pairs(cow:GetDescendants()) do  
+                            if obj:IsA("ProximityPrompt") then  
+                                table.insert(prompts, obj)  
+                            end  
+                        end  
+
+                        if #prompts > 0 then  
+                            local part = cow:FindFirstChildWhichIsA("BasePart", true)  
+                            if part then  
+                                humanoidRootPart.CFrame = part.CFrame + Vector3.new(0, 3, 0)  
+                                task.wait(0.2) -- รอก่อนกด  
+                                for _, prompt in ipairs(prompts) do  
+                                    pcall(fireproximityprompt, prompt)  
+                                end  
+                                -- ✅ หลังจากกดเสร็จ รออยู่ตรงนั้น 3 วิ  
+                                task.wait(2)  
+                            end  
+                        end  
+                    end  
+                    task.wait(0.1)  
+                end  
+                task.wait(0.1)  
+            end  
+        end)  
+    else  
+        print("❌ ปิดฟาร์มวัวแล้ว")  
+        _G.AutoCow = false  
+    end  
+end
+
+})
+-- 🧭 แท็บ ESP
+local Tab = Window:Tab({
+    Title = "ESP",
+    Icon = "eye",
+    Locked = false,
+})
+
+-- 🟢 เปิด/ปิดการแสดง Highlight
+local function createHighlight(obj, color)
+    if not obj:FindFirstChild("Highlight") then
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "Highlight"
+        highlight.FillColor = color
+        highlight.FillTransparency = 0.5
+        highlight.OutlineTransparency = 0
+        highlight.Parent = obj
+    end
+end
+
+local function removeHighlight(obj)
+    local h = obj:FindFirstChild("Highlight")
+    if h then h:Destroy() end
+end
+
+_G.ESP_Mango = false
+_G.ESP_Cow = false
+
+-- 🍋 Toggle ESP มะม่วง
+local Toggle = Tab:Toggle({
+    Title = "ESP มะม่วง",
+    Desc = "การมองแบบสี",
+    Default = false,
+    Callback = function(state)
+        _G.ESP_Mango = state
+        if state then
+            WindUI:Notify({
+                Title = "ESP มะม่วง",
+                Content = "✅ เปิดการแสดงต้นมะม่วง",
+                Duration = 2,
+                Icon = "check-circle",
+            })
+            task.spawn(function()
+                while _G.ESP_Mango do
+                    local mangoFolder = workspace:FindFirstChild("Plants") and workspace.Plants:FindFirstChild("Mango")
+                    if mangoFolder then
+                        for _, plant in pairs(mangoFolder:GetChildren()) do
+                            createHighlight(plant, Color3.fromRGB(170, 0, 255))
+                        end
+                    end
+                    task.wait(3)
+                end
+            end)
+        else
+            WindUI:Notify({
+                Title = "ESP มะม่วง",
+                Content = "⛔ ปิดการแสดงต้นมะม่วง",
+                Duration = 2,
+                Icon = "x-circle",
+            })
+            local mangoFolder = workspace:FindFirstChild("Plants") and workspace.Plants:FindFirstChild("Mango")
+            if mangoFolder then
+                for _, plant in pairs(mangoFolder:GetChildren()) do
+                    removeHighlight(plant)
+                end
+            end
+        end
+    end
+})
+-- 🌟 ESP สำหรับวัว ใช้โฟลเดอร์เดียวกับฟามวัว
+local ESP_Toggle = Tab:Toggle({
+    Title = "ESP วัว",
+    Desc = "การมองแบบสี",
+    Default = false,
+    Callback = function(state)
+        _G.ESP_Cow = state
+
+        local function createHighlight(target)
+            if not target:FindFirstChild("Highlight") then
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "Highlight"
+                highlight.FillColor = Color3.fromRGB(170, 0, 255)
+                highlight.FillTransparency = 0.5
+                highlight.OutlineTransparency = 0
+                highlight.Parent = target
+            end
+        end
+
+        local function removeHighlight(target)
+            local h = target:FindFirstChild("Highlight")
+            if h then h:Destroy() end
+        end
+
+        if state then
+            print("👀 เปิด ESP วัว")
+            task.spawn(function()
+                while _G.ESP_Cow do
+                    local plantsFolder = workspace:FindFirstChild("Plants") and workspace.Plants:FindFirstChild("Cow")
+                    if plantsFolder then
+                        for _, cow in pairs(plantsFolder:GetChildren()) do
+                            if cow:IsA("Model") then
+                                createHighlight(cow)
+                            end
+                        end
+                    end
+                    task.wait(3) -- อัปเดตทุก 3 วิ
+                end
+            end)
+        else
+            print("🚫 ปิด ESP วัว")
+            local plantsFolder = workspace:FindFirstChild("Plants") and workspace.Plants:FindFirstChild("Cow")
+            if plantsFolder then
+                for _, cow in pairs(plantsFolder:GetChildren()) do
+                    removeHighlight(cow)
+                end
+            end
+        end
+    end
+})
+local Tab = Window:Tab({
+    Title = "ESP Players",
+    Icon = "eye", -- optional
+    Locked = false,
+})
+-- 🔘 สวิตช์เปิด / ปิด ESP เส้น
+local Toggle = Tab:Toggle({
+    Title = "ESP Players",
+    Desc = "กดเพื่อแสดงหรือซ่อนเส้นถึงผู้เล่นอื่น",
+    Default = false,
+    Callback = function(State)
+        _G.ESPEnabled = State
+
+        if State then
+            WindUI:Notify({
+                Title = "ESP ",
+                Content = "✅ เปิดใช้งานแล้ว",
+                Duration = 2,
+                Icon = "eye",
+            })
+
+            -- เก็บเส้นไว้เพื่อปิดตอนหยุด
+            _G.Lines = {}
+
+            task.spawn(function()
+                while _G.ESPEnabled do
+                    task.wait(0.1)
+
+                    -- ลบเส้นเก่าออกก่อนจะสร้างใหม่
+                    for _, line in pairs(_G.Lines) do
+                        if line and line.Remove then
+                            pcall(function() line:Remove() end)
+                        end
+                    end
+                    _G.Lines = {}
+
+                    -- สร้างเส้นใหม่ทั้งหมด
+                    for _, v in pairs(game.Players:GetPlayers()) do
+                        if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                            local line = Drawing.new("Line")
+                            table.insert(_G.Lines, line)
+
+                            local myHRP = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                            local targetHRP = v.Character.HumanoidRootPart
+                            if myHRP and targetHRP then
+                                local myPos, onScreen1 = workspace.CurrentCamera:WorldToViewportPoint(myHRP.Position)
+                                local targetPos, onScreen2 = workspace.CurrentCamera:WorldToViewportPoint(targetHRP.Position)
+                                if onScreen1 and onScreen2 then
+                                    line.From = Vector2.new(myPos.X, myPos.Y)
+                                    line.To = Vector2.new(targetPos.X, targetPos.Y)
+                                    line.Visible = true
+                                    line.Color = Color3.fromRGB(R, G, B)
+                                    line.Thickness = 2
+                                else
+                                    line.Visible = false
+                                end
+                            end
+                        end
+                    end
+                end
+
+                -- ถ้าปิด ESP ให้ลบเส้นทั้งหมดออก
+                for _, line in pairs(_G.Lines) do
+                    if line and line.Remove then
+                        pcall(function() line:Remove() end)
+                    end
+                end
+                _G.Lines = {}
+
+                WindUI:Notify({
+                    Title = "ESP ",
+                    Content = "⛔ ปิดใช้งานแล้ว",
+                    Duration = 2,
+                    Icon = "x-circle",
+                })
+            end)
+
+        else
+            -- ปิด ESP
+            _G.ESPEnabled = false
+        end
+    end
+})
+-- 🔘 สวิตช์เปิด / ปิด ESP ชื่อผู้เล่น
+local Toggle = Tab:Toggle({
+    Title = "ESP NAME",
+    Desc = "แสดงชื่อ",
+    Default = false,
+    Callback = function(State)
+        _G.NameESP = State
+
+        if State then
+            WindUI:Notify({
+                Title = "ESP Players",
+                Content = "✅ เปิดใช้งานแล้ว",
+                Duration = 2,
+                Icon = "eye",
+            })
+
+            _G.NameObjects = {}
+
+            task.spawn(function()
+                while _G.NameESP do
+                    task.wait(0.1)
+
+                    -- ลบชื่อเก่าก่อนสร้างใหม่
+                    for _, text in pairs(_G.NameObjects) do
+                        if text and text.Remove then
+                            pcall(function() text:Remove() end)
+                        end
+                    end
+                    _G.NameObjects = {}
+
+                    for _, plr in pairs(game.Players:GetPlayers()) do
+                        if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                            local head = plr.Character.Head
+                            local headPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(head.Position + Vector3.new(0, 1.5, 0))
+
+                            local text = Drawing.new("Text")
+                            text.Visible = onScreen
+                            text.Position = Vector2.new(headPos.X, headPos.Y)
+                            text.Center = true
+                            text.Outline = true
+                            text.Size = 14
+                            text.Color = Color3.fromRGB(255, 255, 255)
+                            text.Text = plr.Name
+
+                            table.insert(_G.NameObjects, text)
+                        end
+                    end
+                end
+
+                -- ลบชื่อทั้งหมดเมื่อปิด
+                for _, text in pairs(_G.NameObjects) do
+                    if text and text.Remove then
+                        pcall(function() text:Remove() end)
+                    end
+                end
+                _G.NameObjects = {}
+
+                WindUI:Notify({
+                    Title = "ESP Players",
+                    Content = "⛔ ปิดใช้งานแล้ว",
+                    Duration = 2,
+                    Icon = "x-circle",
+                })
+            end)
+        else
+            _G.NameESP = false
+        end
+    end
+})
+-- 🟢 Toggle ESP Highlight
+local Toggle = Tab:Toggle({
+    Title = "ESP Highlight",
+    Desc = "เรืองแสงรอบผู้เล่นทั้งหมด",
+    Default = false,
+    Callback = function(State)
+        _G.HighlightESP = State
+
+        if State then
+            WindUI:Notify({
+                Title = "Highlight ESP",
+                Content = "✅ เปิดใช้งานแล้ว",
+                Duration = 2,
+                Icon = "eye",
+            })
+
+            -- ฟังก์ชันสร้าง Highlight
+            local function addHighlight(plr)
+                if plr == game.Players.LocalPlayer then return end
+                if not plr.Character then return end
+                if plr.Character:FindFirstChild("Highlight") then return end
+
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "Highlight"
+                highlight.FillTransparency = 0.5
+                highlight.OutlineTransparency = 0
+                highlight.FillColor = Color3.fromRGB(0, 255, 255) -- สีฟ้า
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.Adornee = plr.Character
+                highlight.Parent = plr.Character
+            end
+
+            -- ฟังก์ชันลบ Highlight
+            local function removeHighlight(plr)
+                if plr.Character and plr.Character:FindFirstChild("Highlight") then
+                    plr.Character.Highlight:Destroy()
+                end
+            end
+
+            -- เพิ่มให้ทุกคนที่มีอยู่แล้ว
+            for _, p in pairs(game.Players:GetPlayers()) do
+                if p ~= game.Players.LocalPlayer then
+                    addHighlight(p)
+                end
+            end
+
+            -- เมื่อมีผู้เล่นใหม่เข้ามา
+            game.Players.PlayerAdded:Connect(function(p)
+                p.CharacterAdded:Connect(function()
+                    task.wait(1)
+                    if _G.HighlightESP then
+                        addHighlight(p)
+                    end
+                end)
+            end)
+
+            -- ลูปตรวจทุก ๆ 1 วิ
+            task.spawn(function()
+                while _G.HighlightESP do
+                    task.wait(1)
+                    for _, p in pairs(game.Players:GetPlayers()) do
+                        if p ~= game.Players.LocalPlayer then
+                            if p.Character and not p.Character:FindFirstChild("Highlight") then
+                                addHighlight(p)
+                            end
+                        end
+                    end
+                end
+
+                -- ถ้าปิด ESP ให้ลบทั้งหมด
+                for _, p in pairs(game.Players:GetPlayers()) do
+                    removeHighlight(p)
+                end
+
+                WindUI:Notify({
+                    Title = "Highlight ESP",
+                    Content = "⛔ ปิดใช้งานแล้ว",
+                    Duration = 2,
+                    Icon = "x-circle",
+                })
+            end)
+
+        else
+            _G.HighlightESP = false
+        end
+    end
+})
