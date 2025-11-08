@@ -1,0 +1,118 @@
+_G.AutoCollect = false
+_G.FarmMoveSpeed = 32
+_G.HoldDelay = 4
+_G.HeadScriptEnabled = false
+_G.HeadSize = 200
+_G.CombatSpeed = 16
+
+-- แก้ชื่อ Folder ให้ตรงกับเกม
+local mainFolder = workspace:FindFirstChild("\224\184\135\224\184\178\224\184\153\224\184\129\224\185\136\224\184\173\224\184\170\224\184\163\224\185\137\224\184\178\224\184\135")
+if not mainFolder then warn("Folder สำหรับฟามไม่พบ!") end
+
+-- =========================
+-- ฟังก์ชันฟาม
+-- =========================
+local function moveTo(pos)
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = _G.FarmMoveSpeed
+        humanoid:MoveTo(pos)
+        humanoid.MoveToFinished:Wait()
+    end
+end
+
+local function collectObject(obj)
+    local prompt = obj:FindFirstChild("Hold E")
+    if prompt and prompt:IsA("ProximityPrompt") then
+        local ok, pos = pcall(function() return prompt.Parent.Position end)
+        if ok then
+            moveTo(pos)
+            fireproximityprompt(prompt)
+            task.wait(_G.HoldDelay)
+        end
+    end
+end
+
+local function collectAll()
+    if not mainFolder then return end
+    for _, obj in pairs(mainFolder:GetChildren()) do
+        if _G.AutoCollect then
+            collectObject(obj)
+        end
+    end
+end
+
+-- Loop Auto Collect
+task.spawn(function()
+    while true do
+        if _G.AutoCollect then
+            collectAll()
+            task.wait(0.1)
+        else
+            task.wait(0.5)
+        end
+    end
+end)
+
+-- =========================
+-- โหลด WindUI
+-- =========================
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+local Window = WindUI:CreateWindow({
+    Title = "So Hub",
+    Icon = "bot",
+    Author = "ภาษาไทย",
+    Folder = "SoHub",
+    Size = UDim2.fromOffset(580, 490),
+    Theme = "Dark",
+})
+
+-- =========================
+-- แท็บฟาม (Auto Collect)
+-- =========================
+local tabFarm = Window:Tab({ Title = "ฟาม", Icon = "sparkles" })
+local sectionFarm = tabFarm:Section({ Title = "ฟามก่อสร้าง" })
+
+sectionFarm:Toggle({
+    Title = "Enable Auto Collect",
+    Value = _G.AutoCollect,
+    Callback = function(state)
+        _G.AutoCollect = state
+        WindUI:Notify({
+            Title = "Auto Collect",
+            Content = state and "Enabled" or "Disabled",
+            Duration = 2
+        })
+    end
+})
+
+sectionFarm:Slider({
+    Title = "Move Speed (ฟาม)",
+    Value = { Min = 16, Max = 200, Default = _G.FarmMoveSpeed },
+    Step = 1,
+    Callback = function(value)
+        _G.FarmMoveSpeed = value
+    end
+})
+
+sectionFarm:Slider({
+    Title = "Hold Delay",
+    Value = { Min = 0, Max = 10, Default = _G.HoldDelay },
+    Step = 0.1,
+    Callback = function(value)
+        _G.HoldDelay = value
+    end
+})
+
+sectionFarm:Button({
+    Title = "Collect Once",
+    Icon = "hand",
+    Callback = function()
+        collectAll()
+        WindUI:Notify({
+            Title = "Collect Once",
+            Content = "Finished collecting!",
+            Duration = 2
+        })
+    end
+})
