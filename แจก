@@ -28,7 +28,7 @@ local player = Players.LocalPlayer
 -- Points
 local waitPoint = Vector3.new(-870.2, 19.7, -146.8)
 local secondPoint = Vector3.new(-430.7, 19.7, -49.5)
-local targetPoint = Vector3.new(-357.2, 19.7, 80.0)
+local targetPoint = Vector3.new(-356.34, 19.69, 53.77)
 local moveToCFrame = CFrame.new(-952.975281, 18.3617821, 324.194092, 0, 0, 1, 1, 0, 0, 0, 1, 0)
 
 -- 🔹 ตัวแปรควบคุม
