@@ -1,0 +1,612 @@
+
+print("Hello, World!")
+-- 🔹 เริ่มต้น LocalScript
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+-- 🔹 ตั้งค่า Part เป้าหมายที่ต้องการย้าย
+local targetPart = workspace.DeliverySystem.DontDeleteTheseObjects.TargetPart -- เป้าหมาย Part
+local moveToCFrame = CFrame.new(-952.975281, 18.3617821, 324.194092, 0, 0, 1, 1, 0, 0, 0, 1, 0) -- จุดที่ต้องการให้ Part ไปอยู่
+-- ฟังก์ชันย้าย Part ไปยังตำแหน่งที่กำหนด
+local function pullPart()
+    targetPart.Anchored = true -- ล็อกไม่ให้ขยับ
+    targetPart.CFrame = moveToCFrame
+end
+
+-- เรียกใช้งานฟังก์ชัน
+pullPart()
+
+-- 🔹 ตั้งค่าตัวแปรหลัก
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- Points
+local waitPoint = Vector3.new(-870.2, 19.7, -146.8)
+local secondPoint = Vector3.new(-430.7, 19.7, -49.5)
+local targetPoint = Vector3.new(-356.34, 19.69, 53.77)
+local moveToCFrame = CFrame.new(-952.975281, 18.3617821, 324.194092, 0, 0, 1, 1, 0, 0, 0, 1, 0)
+
+-- 🔹 ตัวแปรควบคุม
+local scriptEnabled = false
+local isRunning = false
+local stopRequested = false
+local burrowEnabled = false
+local fastPressEnabled = false
+local _FastPressListener = nil
+
+-- ฟังก์ชันบังคับไม่ให้นั่ง
+local function forceStand(char)
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid:GetPropertyChangedSignal("Sit"):Connect(function()
+            if humanoid.Sit then
+                humanoid.Sit = false
+            end
+        end)
+
+        task.spawn(function()
+            while char.Parent do
+                if humanoid.Sit then
+                    humanoid.Sit = false
+                end
+                task.wait(0.1)
+            end
+        end)
+    end
+end
+
+-- เริ่มตรวจจับตัวละคร
+local character = player.Character or player.CharacterAdded:Wait()
+forceStand(character)
+
+player.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    forceStand(char)
+end)
+
+-- 🔹 ระบบ Fast Press
+local function updatePrompt(prompt)
+    if prompt:GetAttribute("OriginalHold") == nil then
+        prompt:SetAttribute("OriginalHold", prompt.HoldDuration)
+    end
+    prompt.HoldDuration = fastPressEnabled and 0.1 or (prompt:GetAttribute("OriginalHold") or 1)
+end
+
+local function applyFastPress()
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("ProximityPrompt") then
+            updatePrompt(obj)
+        end
+    end
+    if not _FastPressListener then
+        _FastPressListener = workspace.DescendantAdded:Connect(function(obj)
+            if obj:IsA("ProximityPrompt") then
+                updatePrompt(obj)
+            end
+        end)
+    end
+end
+
+-- 🔹 ฟังก์ชันเดินและมุด
+local function walkAndBurrow(char, destination, speed)
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    if burrowEnabled then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 1
+                part.CanCollide = false
+            end
+        end
+    end
+
+    local startPos = hrp.Position
+    local dist = (destination - startPos).Magnitude
+    local step = speed / 9
+    local traveled = 0
+
+    while traveled < dist do
+        if stopRequested then break end
+        traveled += step
+        hrp.CFrame = CFrame.new(startPos + (destination - startPos).Unit * math.min(traveled, dist))
+        task.wait(0.05)
+    end
+
+    if burrowEnabled then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 0
+                part.CanCollide = true
+            end
+        end
+    end
+end
+
+-- 🔹 ลูปหลัก Auto Farm
+local function autoWalkLoop()
+    isRunning = true
+
+    while isRunning do
+        if stopRequested then break end
+        local char = player.Character or player.CharacterAdded:Wait()
+
+        walkAndBurrow(char, waitPoint, 60)
+        if stopRequested then break end
+        task.wait(0.2)
+        fireproximityprompt(workspace.DeliverySystem.DontDeleteTheseObjects.GetJobPart.ProximityPrompt)
+
+        walkAndBurrow(char, secondPoint, 60)
+        if stopRequested then break end
+        task.wait(0.2)
+
+        walkAndBurrow(char, targetPoint, 60)
+        if stopRequested then break end
+        task.wait(0.2)
+        fireproximityprompt(workspace.DeliverySystem.DontDeleteTheseObjects.TargetPart.ProximityPrompt)
+        task.wait(0.2)
+    end
+
+    isRunning = false
+    stopRequested = false
+end
+
+-- 🔹 WindUI Setup
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+local Window = WindUI:CreateWindow({
+    Title = "SoHub",
+    Icon = "https://cdn.discordapp.com/attachments/1379297032568569909/1436623861826457600/93_20251108144920-removebg-preview.png?ex=691047bb&is=690ef63b&hm=0eb04f3e5adc7857237b8f13ed6a4d86864f42aec99e055cc9289ce22a04aed2&",
+    Author = "by : SohubTeam",
+Background = "rbxassetid://140525755837810",
+    Folder = "Sohub",
+    Size = UDim2.fromOffset(380, 350),
+    Transparent = true,
+    Theme = "Dark",
+    SideBarWidth = 130,
+    HasOutline = false,
+})
+
+Window:EditOpenButton({
+    Title = "SoHub",
+    Icon = "https://cdn.discordapp.com/attachments/1379297032568569909/1436623861826457600/93_20251108144920-removebg-preview.png?ex=691047bb&is=690ef63b&hm=0eb04f3e5adc7857237b8f13ed6a4d86864f42aec99e055cc9289ce22a04aed2&",
+    CornerRadius = UDim.new(0,16),
+    StrokeThickness = 2,
+    Color = ColorSequence.new( -- gradient
+        Color3.fromHex("FFFFFF"), 
+        Color3.fromHex("0000FF")
+    ),
+    OnlyMobile = false,
+    Enabled = true,
+    Draggable = true,
+})
+WindUI:Notify({
+    Title = "ราชาอาชีวะ",
+    Content = "ขอบคุณที่ใช้บริการ",
+    Duration = 3, -- 3 seconds
+    Icon = "rocket",
+})
+
+
+Window:Tag({
+    Title = "Premium",
+    Color = Color3.fromHex("#30ff6a"),
+    Radius = 13,
+})
+
+Window:Tag({
+    Title = "Racha Achiwa",
+    Color = Color3.fromHex("#FFFF00"),
+    Radius = 13,
+})
+
+-- 🔹 แท็บฟาร์ม
+local FarmTab = Window:Tab({
+    Title = "Farm",
+    Icon = "pickaxe",
+})
+
+FarmTab:Section({
+    Title = "Auto Farm"
+})
+
+local AutoFarmToggle = FarmTab:Toggle({
+    Title = "Auto Farm",
+    Desc = "เปิด/ปิด Auto Farm",
+    Value = false,
+    Callback = function(value)
+        scriptEnabled = value
+        if value then
+            if not isRunning then
+                task.spawn(autoWalkLoop)
+            end
+        else
+            stopRequested = true
+            isRunning = false
+        end
+    end
+})
+
+local FastPressToggle = FarmTab:Toggle({
+    Title = "Fast Press",
+    Desc = "กด E เร็วขึ้น",
+    Value = false,
+    Callback = function(value)
+        fastPressEnabled = value
+        applyFastPress()
+    end
+})
+
+local Tab = Window:Tab({
+    Title = "general",
+    Icon = "user-round-cog", -- optional
+    Locked = false,
+})
+
+local Toggle = Tab:Toggle({
+    Title = "Infinity Jump",
+    Desc = "เปิด/ปิด",
+    Default = true, -- เริ่มต้นเปิด
+    Callback = function(state)
+        if state then
+            print("สวิตช์เปิดอยู่")
+           -- 🌟 Infinite Jump Script 🌟
+local Player = game:GetService("Players").LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+
+-- เปิด/ปิดกระโดดไม่จำกัด
+_G.InfiniteJumpEnabled = true
+
+UserInputService.JumpRequest:Connect(function()
+	if _G.InfiniteJumpEnabled then
+		Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+	end
+end)
+        else
+            print("สวิตช์ถูกปิด")
+            _G.InfiniteJumpEnabled = false
+        end
+    end
+})
+
+local Toggle = Tab:Toggle({
+Title = "Speed Hack",
+Desc = "เปิด/ปิด",
+Default = true, -- เริ่มต้นเปิด
+Callback = function(state)
+if state then
+print("สวิตช์เปิดอยู่")
+game.Players.LocalPlayer.Character.Humanoid.WalkSpeed=100
+else
+print("สวิตช์ถูกปิด")
+game.Players.LocalPlayer.Character.Humanoid.WalkSpeed=32
+end
+end
+})
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- สร้าง Slider
+local Slider = Tab:Slider({
+    Title = "WalkSpeed",
+    Desc = "ปรับความเร็วเดินของตัวละคร",
+    Step = 1, -- เลื่อนทีละ 1
+    Value = {
+        Min = 16,    -- ความเร็วเดินต่ำสุด (ค่า default Roblox)
+        Max = 200,   -- ความเร็วเดินสูงสุด
+        Default = 32, -- เริ่มต้นที่ 16
+    },
+    Callback = function(value)
+        -- เช็คว่าตัวละครมี Humanoid
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = value
+        end
+        print("WalkSpeed ปัจจุบัน:", value)
+    end
+})
+local Tab = Window:Tab({
+    Title = "pvp",
+    Icon = "sword", -- optional
+    Locked = false,
+})
+-- 🌟 ประกาศค่าเริ่มต้น
+_G.ESPEnabled = false
+_G.HeadSize = 20
+
+-- 🧩 ปุ่มเปิด/ปิด ESP
+Tab:Toggle({
+    Title = "hitbox",
+    Desc = "เปิด/ปิด",
+    Default = false,
+    Callback = function(state)
+        _G.ESPEnabled = state
+        print("ESP สถานะ:", state and "เปิด" or "ปิด")
+    end
+})
+
+Tab:Slider({
+    Title = "ขนาด Hitbox",
+    Desc = "ปรับขนาดกล่องผู้เล่น",
+    Step = 1,
+    Value = {
+        Min = 5,
+        Max = 100,
+        Default = _G.HeadSize,
+    },
+    Callback = function(value)
+        _G.HeadSize = value
+        print("ขนาด Hitbox:", value)
+    end
+})
+
+-- 🔁 ระบบ ESP ทำงานแยกใน loop (หยุดเมื่อปิด)
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if _G.ESPEnabled then
+            for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+                if v ~= game:GetService("Players").LocalPlayer then
+                    pcall(function()
+                        local hrp = v.Character and v.Character:FindFirstChild("HumanoidRootPart")
+                        if hrp then
+                            hrp.Size = Vector3.new(_G.HeadSize, _G.HeadSize, _G.HeadSize)
+                            hrp.Transparency = 0.7
+                            hrp.BrickColor = BrickColor.new("Really black")
+                            hrp.Material = Enum.Material.Neon
+                            hrp.CanCollide = false
+                        end
+                    end)
+                end
+            end
+        else
+            -- ถ้าปิด ให้รีเซ็ตขนาดกลับปกติ
+            for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+                if v ~= game:GetService("Players").LocalPlayer then
+                    pcall(function()
+                        local hrp = v.Character and v.Character:FindFirstChild("HumanoidRootPart")
+                        if hrp then
+                            hrp.Size = Vector3.new(255, 0, 255)
+                            hrp.Transparency = 1
+                            hrp.Material = Enum.Material.Plastic
+                        end
+                    end)
+                end
+            end
+        end
+    end
+end)
+local Tab = Window:Tab({
+    Title = "esp",
+    Icon = "scan-eye", -- optional
+    Locked = false,
+})
+local Toggle = Tab:Toggle({
+    Title = "ESP NAME",
+    Desc = "แสดงชื่อ",
+    Default = false,
+    Callback = function(State)
+        _G.NameESP = State
+
+        if State then
+            WindUI:Notify({
+                Title = "ESP Players",
+                Content = "✅ เปิดใช้งานแล้ว",
+                Duration = 2,
+                Icon = "eye",
+            })
+
+            _G.NameObjects = {}
+
+            task.spawn(function()
+                while _G.NameESP do
+                    task.wait(0.1)
+
+                    -- ลบชื่อเก่าก่อนสร้างใหม่
+                    for _, text in pairs(_G.NameObjects) do
+                        if text and text.Remove then
+                            pcall(function() text:Remove() end)
+                        end
+                    end
+                    _G.NameObjects = {}
+
+                    for _, plr in pairs(game.Players:GetPlayers()) do
+                        if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                            local head = plr.Character.Head
+                            local headPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(head.Position + Vector3.new(0, 1.5, 0))
+
+                            local text = Drawing.new("Text")
+                            text.Visible = onScreen
+                            text.Position = Vector2.new(headPos.X, headPos.Y)
+                            text.Center = true
+                            text.Outline = true
+                            text.Size = 14
+                            text.Color = Color3.fromRGB(255, 255, 255)
+                            text.Text = plr.Name
+
+                            table.insert(_G.NameObjects, text)
+                        end
+                    end
+                end
+
+                -- ลบชื่อทั้งหมดเมื่อปิด
+                for _, text in pairs(_G.NameObjects) do
+                    if text and text.Remove then
+                        pcall(function() text:Remove() end)
+                    end
+                end
+                _G.NameObjects = {}
+
+                WindUI:Notify({
+                    Title = "ESP Players",
+                    Content = "⛔ ปิดใช้งานแล้ว",
+                    Duration = 2,
+                    Icon = "x-circle",
+                })
+            end)
+        else
+            _G.NameESP = false
+        end
+    end
+})
+-- 🟢 Toggle ESP Highlight
+local Toggle = Tab:Toggle({
+    Title = "ESP Highlight",
+    Desc = "เรืองแสงรอบผู้เล่นทั้งหมด",
+    Default = false,
+    Callback = function(State)
+        _G.HighlightESP = State
+
+        if State then
+            WindUI:Notify({
+                Title = "Highlight ESP",
+                Content = "✅ เปิดใช้งานแล้ว",
+                Duration = 2,
+                Icon = "eye",
+            })
+
+            -- ฟังก์ชันสร้าง Highlight
+            local function addHighlight(plr)
+                if plr == game.Players.LocalPlayer then return end
+                if not plr.Character then return end
+                if plr.Character:FindFirstChild("Highlight") then return end
+
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "Highlight"
+                highlight.FillTransparency = 0.5
+                highlight.OutlineTransparency = 0
+                highlight.FillColor = Color3.fromRGB(0, 255, 255) -- สีฟ้า
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.Adornee = plr.Character
+                highlight.Parent = plr.Character
+            end
+
+            -- ฟังก์ชันลบ Highlight
+            local function removeHighlight(plr)
+                if plr.Character and plr.Character:FindFirstChild("Highlight") then
+                    plr.Character.Highlight:Destroy()
+                end
+            end
+
+            -- เพิ่มให้ทุกคนที่มีอยู่แล้ว
+            for _, p in pairs(game.Players:GetPlayers()) do
+                if p ~= game.Players.LocalPlayer then
+                    addHighlight(p)
+                end
+            end
+
+            -- เมื่อมีผู้เล่นใหม่เข้ามา
+            game.Players.PlayerAdded:Connect(function(p)
+                p.CharacterAdded:Connect(function()
+                    task.wait(1)
+                    if _G.HighlightESP then
+                        addHighlight(p)
+                    end
+                end)
+            end)
+
+            -- ลูปตรวจทุก ๆ 1 วิ
+            task.spawn(function()
+                while _G.HighlightESP do
+                    task.wait(1)
+                    for _, p in pairs(game.Players:GetPlayers()) do
+                        if p ~= game.Players.LocalPlayer then
+                            if p.Character and not p.Character:FindFirstChild("Highlight") then
+                                addHighlight(p)
+                            end
+                        end
+                    end
+                end
+
+                -- ถ้าปิด ESP ให้ลบทั้งหมด
+                for _, p in pairs(game.Players:GetPlayers()) do
+                    removeHighlight(p)
+                end
+
+                WindUI:Notify({
+                    Title = "Highlight ESP",
+                    Content = "⛔ ปิดใช้งานแล้ว",
+                    Duration = 2,
+                    Icon = "x-circle",
+                })
+            end)
+
+        else
+            _G.HighlightESP = false
+        end
+    end
+})
+local Tab = Window:Tab({
+    Title = "shop",
+    Icon = "shopping-basket", -- optional
+    Locked = false,
+})
+local Button = Tab:Button({
+    Title = "โบ๊ะ",
+    Desc = "ซื้อโบ๊ะ",
+    Locked = false,
+    Callback = function()
+        local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local RunService = game:GetService("RunService")
+
+-- เปิด Noclip
+for _, part in pairs(character:GetDescendants()) do
+    if part:IsA("BasePart") then
+        part.CanCollide = false
+    end
+end
+
+-- กำหนดค่าเป้าหมาย เช่น workspace:GetChildren()[255]
+local target = workspace:GetChildren()[255]
+if not target then return end
+
+-- หา Part ที่มี ProximityPrompt
+local promptPart
+if target:IsA("Model") then
+    for _, obj in pairs(target:GetDescendants()) do
+        if obj:IsA("ProximityPrompt") then
+            promptPart = obj.Parent
+            break
+        end
+    end
+else
+    promptPart = target
+end
+if not promptPart then return end
+
+-- ฟังก์ชันบิน/ลอยไปยังเป้าหมาย
+local function flyTo(position, speed)
+    speed = speed or 100 -- ความเร็ว
+    local reached = false
+    local conn
+    conn = RunService.Heartbeat:Connect(function(deltaTime)
+        local direction = position - rootPart.Position
+        local distance = direction.Magnitude
+        if distance < 2 then
+            reached = true
+            conn:Disconnect()
+        else
+            rootPart.CFrame = rootPart.CFrame + direction.Unit * speed * deltaTime
+        end
+    end)
+    repeat task.wait() until reached
+end
+
+-- เริ่มบินไปยัง PromptPart
+flyTo(promptPart.Position + Vector3.new(0,3,0), 100)
+
+-- กด ProximityPrompt ครั้งเดียว
+for _, obj in pairs(promptPart:GetDescendants()) do
+    if obj:IsA("ProximityPrompt") then
+        fireproximityprompt(obj)
+    end
+end
+
+print("✅ บินไปและกด Prompt เสร็จแล้ว")
+    end
+})
