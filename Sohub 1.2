@@ -1,0 +1,438 @@
+--[[ 
+    WindUI Example + AimLock for NPCs/Bots (Safe Example)
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+
+-- Load WindUI
+local WindUI
+do
+    local ok, result = pcall(function()
+        return require("./src/Init")
+    end)
+    
+    if ok then
+        WindUI = result
+    else 
+        WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+    end
+end
+
+-- Create Window
+local Window = WindUI:CreateWindow({
+    Title = "So hub. |||free||| v1.1",
+    Author = "gun fps ",
+    Folder = "ftgshub",
+    NewElements = true,
+    OpenButton = {
+        Title = "So hub. |||free||| v1.1",
+        CornerRadius = UDim.new(1,0),
+        StrokeThickness = 3,
+        Enabled = true,
+        Draggable = true,
+        OnlyMobile = false,
+        Color = ColorSequence.new(Color3.fromHex("#30FF6A"), Color3.fromHex("#e7ff2f"))
+    }
+})
+Window:ToggleTransparency(true)
+Window:Tag({
+    Title = "v1.1",
+    Icon = "monitor-cog",
+    Color = Color3.fromHex("#30ff6a"),
+    Radius = 13, -- from 0 to 13
+})
+-- Elements Section
+local ElementsSection = Window:Section({ Title = "Function" })
+
+-- AimLock Variables
+local AimLockEnabled = false
+local AimTarget = nil
+local AimFOV = 100 -- example FOV
+
+-- Toggle AimLock
+local ToggleTab = ElementsSection:Tab({ Title = "PvP", Icon = "swords" })
+ToggleTab:Toggle({
+    Title = "look",
+    Default = false,
+    Callback = function(state)
+        AimLockEnabled = state
+    end
+})
+
+-- Function: Check if NPC is visible
+local function IsVisible(targetPart)
+    local origin = Workspace.CurrentCamera.CFrame.Position
+    local direction = (targetPart.Position - origin).Unit * (targetPart.Position - origin).Magnitude
+    local ray = Ray.new(origin, direction)
+    local hit = Workspace:FindPartOnRay(ray, LocalPlayer.Character)
+    return hit and hit:IsDescendantOf(targetPart.Parent)
+end
+
+-- Function: Get closest visible NPC
+local function GetClosestNPC()
+    local closest
+    local shortestDist = AimFOV
+    for _, npc in pairs(Workspace:GetChildren()) do
+        if npc:FindFirstChild("HumanoidRootPart") and npc:FindFirstChild("Humanoid") then
+            local root = npc.HumanoidRootPart
+            local screenPos, onScreen = Workspace.CurrentCamera:WorldToViewportPoint(root.Position)
+            if onScreen and IsVisible(root) then
+                local mousePos = Vector2.new(workspace.CurrentCamera.ViewportSize.X/2, workspace.CurrentCamera.ViewportSize.Y/2)
+                local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                if dist < shortestDist then
+                    shortestDist = dist
+                    closest = npc
+                end
+            end
+        end
+    end
+    return closest
+end
+
+-- AimLock Loop
+RunService.RenderStepped:Connect(function()
+    if AimLockEnabled then
+        local target = GetClosestNPC()
+        if target and target:FindFirstChild("HumanoidRootPart") then
+            AimTarget = target
+            Workspace.CurrentCamera.CFrame = CFrame.new(Workspace.CurrentCamera.CFrame.Position, AimTarget.HumanoidRootPart.Position)
+        else
+            AimTarget = nil
+        end
+    end
+end)
+
+
+local ButtonTab = ElementsSection:Tab({ Title = "Game system", Icon = "gamepad-2" })
+ButtonTab:Button({
+    Title = "Gun RGB",
+    Callback = function()
+-- SERVICES
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Backpack = LocalPlayer:WaitForChild("Backpack")
+
+-- VARIABLES
+local highlightEnabled = true -- เปิดใช้งานโดยอัตโนมัติ
+local highlight = nil
+local currentTool = nil
+
+-- สีเรนโบว์สดใส
+local rainbowColors = {
+	Color3.fromRGB(255,0,0),      -- แดง
+	Color3.fromRGB(255,127,0),    -- ส้ม
+	Color3.fromRGB(255,255,0),    -- เหลือง
+	Color3.fromRGB(0,255,0),      -- เขียว
+	Color3.fromRGB(0,0,255),      -- น้ำเงิน
+	Color3.fromRGB(75,0,130),     -- คราม
+	Color3.fromRGB(148,0,211),    -- ม่วง
+}
+
+local colorIndex = 1
+local tweenTime = 0.2 -- เปลี่ยนสีเร็ว
+
+-- FUNCTIONS
+local function createHighlight(tool)
+	if highlight then
+		highlight:Destroy()
+	end
+	highlight = Instance.new("Highlight")
+	highlight.Adornee = tool
+	highlight.FillTransparency = 0.2
+	highlight.OutlineTransparency = 0
+	highlight.Parent = tool
+end
+
+local function removeHighlight()
+	if highlight then
+		highlight:Destroy()
+		highlight = nil
+	end
+end
+
+local function tweenColor()
+	if highlight then
+		local tweenInfo = TweenInfo.new(tweenTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+		local goal = {FillColor = rainbowColors[colorIndex]}
+		local tween = TweenService:Create(highlight, tweenInfo, goal)
+		tween:Play()
+		tween.Completed:Connect(function()
+			colorIndex = colorIndex + 1
+			if colorIndex > #rainbowColors then
+				colorIndex = 1
+			end
+			if highlightEnabled then
+				tweenColor()
+			end
+		end)
+	end
+end
+
+-- เริ่ม Highlight สำหรับ Tool ที่ถืออยู่
+currentTool = LocalPlayer.Character:FindFirstChildOfClass("Tool") or Backpack:FindFirstChildOfClass("Tool")
+if currentTool then
+	createHighlight(currentTool)
+	tweenColor()
+end
+
+-- Detect tool change
+LocalPlayer.Character.ChildAdded:Connect(function(child)
+	if child:IsA("Tool") and highlightEnabled then
+		currentTool = child
+		createHighlight(currentTool)
+		tweenColor()
+	end
+end)
+    end
+})
+
+
+local ButtonTab = ElementsSection:Tab({ Title = "Players", Icon = "person-standing" })
+ButtonTab:Button({
+    Title = "Speed Hack",
+    Callback = function()
+game.Players.LocalPlayer.Character.Humanoid.WalkSpeed=25
+end 
+
+
+})
+local ToggleTab = ElementsSection:Tab({ Title = "ESP", Icon = "eye" })
+
+-- เก็บสถานะ ESP
+local ESPEnabled = false
+
+ToggleTab:Toggle({
+    Title = "Esp",
+    Default = false,
+    Callback = function(state)
+        ESPEnabled = state -- เปลี่ยนสถานะเปิด/ปิด
+
+        if ESPEnabled then
+            WindUI:Notify({
+                Title = "ESP",
+                Content = "✅ เปิดใช้งาน ESP แล้ว",
+                Duration = 2,
+                Icon = "eye",
+            })
+        else
+            WindUI:Notify({
+                Title = "ESP",
+                Content = "❌ ปิด ESP แล้ว",
+                Duration = 2,
+                Icon = "eye-off",
+            })
+        end
+    end
+})
+
+-- ส่วน ESP + Tracer
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local colors = {
+    Color3.fromRGB(255, 0, 0),
+    Color3.fromRGB(255, 127, 0),
+    Color3.fromRGB(255, 255, 0),
+    Color3.fromRGB(0, 255, 0),
+    Color3.fromRGB(0, 0, 255),
+    Color3.fromRGB(75, 0, 130),
+    Color3.fromRGB(148, 0, 211)
+}
+
+local PlayerData = {}
+
+local function addPlayer(plr)
+    if plr == LocalPlayer then return end
+    if PlayerData[plr] then return end
+
+    -- Highlight
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "Highlight"
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.FillColor = colors[1]
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.Parent = plr
+
+    local function updateAdornee()
+        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            highlight.Adornee = plr.Character.HumanoidRootPart
+        end
+    end
+
+    if plr.Character then updateAdornee() end
+    plr.CharacterAdded:Connect(function()
+        task.wait(0.5)
+        updateAdornee()
+    end)
+
+    -- Tracer
+    local tracer = Drawing.new("Line")
+    tracer.Visible = true
+    tracer.Color = Color3.fromRGB(255,0,0)
+    tracer.Thickness = 1.5
+    tracer.Transparency = 1
+
+    PlayerData[plr] = {Highlight = highlight, Tracer = tracer}
+end
+
+local function removePlayer(plr)
+    if PlayerData[plr] then
+        if PlayerData[plr].Highlight then PlayerData[plr].Highlight:Destroy() end
+        if PlayerData[plr].Tracer then PlayerData[plr].Tracer:Remove() end
+        PlayerData[plr] = nil
+    end
+end
+
+for _, plr in pairs(Players:GetPlayers()) do
+    addPlayer(plr)
+end
+
+Players.PlayerAdded:Connect(addPlayer)
+Players.PlayerRemoving:Connect(removePlayer)
+
+-- ลูปอัปเดตเส้นทุกเฟรม
+RunService.RenderStepped:Connect(function()
+    local localChar = LocalPlayer.Character
+    local startPos
+
+    if localChar and localChar:FindFirstChild("HumanoidRootPart") then
+        startPos = localChar.HumanoidRootPart.Position - Vector3.new(0, localChar.HumanoidRootPart.Size.Y/2, 0)
+    else
+        return
+    end
+
+    local colorIndex = tick() * 2 % #colors + 1
+
+    for plr, data in pairs(PlayerData) do
+        -- ถ้า ESP ปิด ให้ซ่อน Highlight + Tracer
+        if not ESPEnabled then
+            data.Tracer.Visible = false
+            if data.Highlight then data.Highlight.FillColor = Color3.fromRGB(255,255,255) end
+        else
+            -- สลับสี Highlight
+            if data.Highlight then
+                local cIndex = math.floor(colorIndex) % #colors + 1
+                data.Highlight.FillColor = colors[cIndex]
+            end
+
+            -- Tracer
+            if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local targetPos = plr.Character.HumanoidRootPart.Position
+                local screenStart, onScreenStart = Camera:WorldToViewportPoint(startPos)
+                local screenEnd, onScreenEnd = Camera:WorldToViewportPoint(targetPos)
+
+                if onScreenStart and onScreenEnd then
+                    data.Tracer.From = Vector2.new(screenStart.X, screenStart.Y)
+                    data.Tracer.To = Vector2.new(screenEnd.X, screenEnd.Y)
+                    data.Tracer.Visible = true
+                    data.Tracer.Color = colors[math.floor(colorIndex) % #colors +1]
+                else
+                    data.Tracer.Visible = false
+                end
+            else
+                data.Tracer.Visible = false
+            end
+        end
+    end
+end)
+
+local HighlightEnabled = false
+
+local ToggleTab = ElementsSection:Tab({
+    Title = "esp",
+    Icon = "eye"
+})
+
+ToggleTab:Toggle({
+    Title = "esp rgb",
+    Default = false,
+    Callback = function(state)
+        HighlightEnabled = state
+    end
+})
+local Players = game:GetService("Players")
+local Speed = 0.1
+
+-- ลบ highlight ทั้งหมดจากทุกคน
+local function RemoveAllHighlights()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr.Character then
+            local h = plr.Character:FindFirstChild("Highlight_Rainbow")
+            if h then h:Destroy() end
+        end
+    end
+end
+
+-- สร้าง highlight ใหม่
+local function CreateHighlight(char)
+    if char:FindFirstChild("Highlight_Rainbow") then
+        return char.Highlight_Rainbow
+    end
+
+    local h = Instance.new("Highlight")
+    h.Name = "Highlight_Rainbow"
+    h.FillTransparency = 0.5
+    h.OutlineTransparency = 0
+    h.Parent = char
+    return h
+end
+
+-- เมื่อผู้เล่นเกิด
+local function SetupPlayer(plr)
+    plr.CharacterAdded:Connect(function(char)
+        task.wait(1)
+        if HighlightEnabled then
+            CreateHighlight(char)
+        end
+    end)
+end
+
+for _, plr in ipairs(Players:GetPlayers()) do
+    SetupPlayer(plr)
+end
+
+Players.PlayerAdded:Connect(SetupPlayer)
+
+-- LOOP เปลี่ยนสีตามสถานะ Toggle
+task.spawn(function()
+    while true do
+        if HighlightEnabled then
+            -- เปลี่ยนสี
+            local t = tick()
+            local color = Color3.fromHSV((t % 5) / 5, 1, 1)
+
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr.Character then
+                    local h = plr.Character:FindFirstChild("Highlight_Rainbow") or CreateHighlight(plr.Character)
+                    h.FillColor = color
+                    h.OutlineColor = color
+                end
+            end
+
+        else
+            -- ปิด = ลบ highlight ทั้งหมด
+            RemoveAllHighlights()
+        end
+
+        task.wait(Speed)
+    end
+end)
+
+
+local ButtonTab = ElementsSection:Tab({ Title = "Settings", Icon = "bolt" })
+ButtonTab:Button({
+    Title = "Settings",
+    Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/So%20hub%201.2 ", true))()
+end 
+})
