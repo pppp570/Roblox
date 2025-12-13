@@ -1,0 +1,827 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local PathfindingService = game:GetService("PathfindingService")
+
+local Tween
+local PathPartsFolder = workspace:FindFirstChild("PathLines") or Instance.new("Folder", workspace)
+PathPartsFolder.Name = "PathLines"
+
+local TweenService = game:GetService("TweenService")
+local PathfindingService = game:GetService("PathfindingService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+function DrawPathLine(startPos, endPos)
+	local part = Instance.new("Part")
+	part.Anchored = true
+	part.CanCollide = false
+	part.Material = Enum.Material.Neon
+	part.Color = Color3.fromRGB(180, 0, 255)
+	part.Transparency = 0.25
+	local distance = (startPos - endPos).Magnitude
+	part.Size = Vector3.new(0.2, 0.2, distance)
+	part.CFrame = CFrame.new(startPos, endPos) * CFrame.new(0, 0, -distance / 2)
+	part.Parent = PathPartsFolder
+end
+
+function ClearPathLines()
+	for _, v in pairs(PathPartsFolder:GetChildren()) do
+		v:Destroy()
+	end
+end
+local Tween
+
+function TPX(p)
+    if Tween then
+        Tween:Cancel()
+        Tween = nil
+    end
+
+    local player = game.Players.LocalPlayer
+    local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local Distance = (p.Position - root.Position).Magnitude
+    local Speed = 130
+
+    Tween = game:GetService("TweenService"):Create(
+        root,
+        TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear),
+        {CFrame = p}
+    )
+
+    root.CFrame = CFrame.new(root.Position.X, 10, root.Position.Z)
+
+    Tween:Play()
+
+    task.spawn(function()
+        while Tween and Tween.PlaybackState == Enum.PlaybackState.Playing do
+            if not _G.FarmCement then
+                Tween:Cancel()
+                Tween = nil
+				root.CFrame = CFrame.new(root.Position.X, 20, root.Position.Z)
+                break
+            end
+            task.wait()
+        end
+    end)
+end
+
+function TP(targetCFrame)
+	if LocalPlayer.Character.Humanoid.Sit then
+		LocalPlayer.Character.Humanoid.Sit = false
+		wait(1)
+		return
+	end
+	ClearPathLines()
+	local targetPos = targetCFrame.Position
+	local path = PathfindingService:CreatePath({
+		AgentRadius = 5,
+		AgentHeight = 5,
+		AgentCanJump = true,
+		WaypointSpacing = 5,
+	})
+
+	path:ComputeAsync(LocalPlayer.Character:WaitForChild("HumanoidRootPart").Position, targetPos)
+
+	if path.Status == Enum.PathStatus.Success then
+		local waypoints = path:GetWaypoints()
+		for i = 1, #waypoints - 1 do
+			DrawPathLine(waypoints[i].Position, waypoints[i + 1].Position)
+		end
+		for _, waypoint in ipairs(waypoints) do
+			if _G.FarmCement == false then
+				if Tween then Tween:Cancel() end
+				ClearPathLines()
+				return
+			end
+
+			local distance = (LocalPlayer.Character.HumanoidRootPart.Position - waypoint.Position).Magnitude
+			local speed = 130
+			local tweenInfo = TweenInfo.new(distance / speed, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+
+			if Tween then
+				Tween:Cancel()
+			end
+
+			Tween = TweenService:Create(LocalPlayer.Character.HumanoidRootPart, tweenInfo, {CFrame = CFrame.new(waypoint.Position)})
+			Tween:Play()
+			Tween.Completed:Wait()
+
+			if waypoint.Action == Enum.PathWaypointAction.Jump then
+				LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+			end
+		end
+		ClearPathLines()
+	else
+		local distance = (LocalPlayer.Character.HumanoidRootPart.Position - targetPos).Magnitude
+		local speed = 130
+		local tweenInfo = TweenInfo.new(distance / speed, Enum.EasingStyle.Linear)
+
+		if Tween then
+			Tween:Cancel()
+		end
+
+		Tween = TweenService:Create(LocalPlayer.Character.HumanoidRootPart, tweenInfo, {CFrame = targetCFrame})
+		Tween:Play()
+		while Tween.PlaybackState ~= Enum.PlaybackState.Completed do
+			if _G.FarmCement == false then
+				Tween:Cancel()
+				return
+			end
+			task.wait(0.1)
+		end
+	end
+end
+
+-- เนเธซเธฅเธ” Cascade
+--// Imports
+local cascade = loadstring(game:HttpGet("https://raw.githubusercontent.com/Yenixs/Map/refs/heads/main/dist.luau"))()
+
+--// References
+local userInputService = cloneref and cloneref(game:GetService("UserInputService")) or game:GetService("UserInputService")
+--// Variables
+local minimizeKeybind = Enum.KeyCode.RightControl
+
+--// Functions
+local function titledRow(parent, title, subtitle)
+	local row = parent:Row({
+		SearchIndex = title,
+	})
+	row:Left():TitleStack({
+		Title = title,
+		Subtitle = subtitle,
+	})
+	return row
+end
+
+--// UI
+local app = cascade.New({
+	WindowPill = true,
+	Theme = cascade.Themes.Dark,
+})
+
+do
+	local window = app:Window({
+		Title = "Nexus Hub",
+		Subtitle = "v1.1",
+		Size = userInputService.TouchEnabled and UDim2.fromOffset(550, 325) or UDim2.fromOffset(850, 530),
+	})
+
+	userInputService.InputEnded:Connect(function(input, gameProcessedEvent)
+		if input.KeyCode == minimizeKeybind and not gameProcessedEvent then
+			window.Minimized = not window.Minimized
+		end
+	end)
+
+	--// Farm Tab
+	do
+		local section = window:Section({
+			Disclosure = false,
+			Title = "Farm Tab",
+		})
+
+		local tab = section:Tab({
+			Title = "Farm",
+			Icon = cascade.Symbols.sprout,
+			Selected = true,
+		})
+
+		local form = tab:Form()
+
+		-- Toggle เธเธฒเธกเธเธนเธ
+		do
+			local row = titledRow(form, "เธเธฒเธกเธเธนเธ", "")
+			row:Right():Toggle({
+				Value = false,
+				ValueChanged = function(self, value)
+					_G.FarmCement = value
+				end,
+			})
+		end
+
+		-- Toggle เธเธฒเธกเธเนเธญเธชเธฃเนเธฒเธ
+		do
+			local row = titledRow(form, "เธเธฒเธกเธเนเธญเธชเธฃเนเธฒเธ", "")
+			row:Right():Toggle({
+				Value = false,
+				ValueChanged = function(self, value)
+					_G.FarmConstruct = value
+				end,
+			})
+		end
+	end
+
+	--// Character Tab
+	do
+		local tab = window:Tab({
+			Title = "Character Tab",
+			Icon = cascade.Symbols.person,
+		})
+
+		local form = tab:Form()
+
+		do
+			local row = titledRow(form, "FPS เธเธฅเธญเธก", "")
+			row:Right():Toggle({
+				Value = false,
+				ValueChanged = function(self, value)
+					_G.FakeFPS = value
+				end,
+			})
+		end
+
+		do
+			local row = titledRow(
+				form,
+				"เนเธชเน FPS",
+				"Fake Fps"
+			)
+
+			row:Right():TextField({
+				Value = "",
+				ValueChanged = function(self, value)
+					_G.FPSValue = value
+				end,
+			})
+		end
+		do
+			local form = tab:PageSection({ Title = "Humanoid" }):Form()
+			do
+				local row = titledRow(
+					form,
+					"เนเธชเน เธเธงเธฒเธกเน€เธฃเนเธง",
+					"WalkSpeed"
+				)
+
+				row:Right():TextField({
+					Value = "",
+					ValueChanged = function(self, value)
+						_G.WalkSpeed = value
+					end,
+				})
+			end
+			do
+				local row = titledRow(form, "เธ•เธเธฅเธ เธเธงเธฒเธกเน€เธฃเนเธง", "")
+				row:Right():Toggle({
+					Value = false,
+					ValueChanged = function(self, value)
+						_G.EnabledWalkSpeed = value
+					end,
+				})
+			end
+			do
+				local row = titledRow(
+					form,
+					"เนเธชเน เธเธฃเธฐเนเธ”เธ”เธชเธนเธ",
+					"JumpPower"
+				)
+
+				row:Right():TextField({
+					Value = "",
+					ValueChanged = function(self, value)
+						_G.JumpPower = value
+					end,
+				})
+			end
+			do
+				local row = titledRow(form, "เธ•เธเธฅเธ เธเธฃเธฐเนเธ”เธ”เธชเธนเธ", "")
+				row:Right():Toggle({
+					Value = false,
+					ValueChanged = function(self, value)
+						_G.EnabledJumpPower = value
+					end,
+				})
+			end
+			do
+				local row = titledRow(form, "เธ•เธเธฅเธ เธเธฃเธฐเนเธ”เธ”เนเธกเนเธเธณเธเธฑเธ”", "")
+				row:Right():Toggle({
+					Value = false,
+					ValueChanged = function(self, value)
+						_G.EnabledJumpsky = value
+					end,
+				})
+			end
+			do
+				local row = titledRow(form, "เธ•เธเธฅเธ เน€เธ”เธดเธเธ—เธฐเธฅเธธ", "")
+				row:Right():Toggle({
+					Value = false,
+					ValueChanged = function(self, value)
+						_G.EnabledNoclip = value
+					end,
+				})
+			end	
+		end
+	end
+	do
+		local tab = window:Tab({
+			Title = "PvP Tab",
+			Icon = cascade.Symbols.sd,
+		})
+
+		local form = tab:Form()
+
+		do
+			local form = tab:PageSection({ Title = "weapon" }):Form()
+			do
+				local row = titledRow(form, "เธ•เธเธฅเธ Pocket Knife เธ•เธตเน€เธฃเนเธง", "")
+				row:Right():Toggle({
+					Value = false,
+					ValueChanged = function(self, value)
+						_G.FastPocketKnife = value
+					end,
+				})
+				local function GetNearestPlayer()
+					local nearestPlayer
+					local shortestDistance = math.huge
+
+					local localChar = LocalPlayer.Character
+					if not (localChar and localChar:FindFirstChild("HumanoidRootPart")) then
+						return nil, math.huge
+					end
+
+					local localPos = localChar.HumanoidRootPart.Position
+
+					for _, player in pairs(Players:GetPlayers()) do
+						if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+							local dist = (player.Character.HumanoidRootPart.Position - localPos).Magnitude
+							if dist < shortestDistance then
+								shortestDistance = dist
+								nearestPlayer = player
+								print(nearestPlayer)
+							end
+						end
+					end
+					return nearestPlayer, shortestDistance
+				end
+
+
+
+				local function GetHandle()
+					return LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("\224\184\161\224\184\181\224\184\148\224\184\158\224\184\129")
+				end
+				task.spawn(function()
+					while task.wait(0.1) do
+						local targetPlayer, distance = GetNearestPlayer()
+						local handle = GetHandle()
+						local Radiusfastattack = tonumber(_G.Radiusfastattack) or 20
+						if targetPlayer and distance <= Radiusfastattack and handle and _G.FastPocketKnife then
+							local args = {
+								targetPlayer.Character,
+								handle:WaitForChild("Handle"),
+								[4] = {
+									AttackDelay = 0.4,
+									AnimationTable = {
+										{
+											ID = "rbxassetid://107169772361244",
+											speed = {
+												0.8
+											},
+											hitboxTimes = {
+												0,
+												1
+											},
+											animationType = "Attack"
+										},
+										{
+											ID = "rbxassetid://107169772361244",
+											speed = {
+												0.8
+											},
+											hitboxTimes = {
+												0,
+												0.5
+											},
+											animationType = "Charging"
+										},
+										{
+											ID = "rbxassetid://107169772361244",
+											speed = {
+												0.8
+											},
+											hitboxTimes = {
+												0,
+												0.5
+											},
+											animationType = "MaxCharging"
+										}
+									},
+									BaseDamage = {
+										11,
+										22
+									},
+									MiscTable = {},
+									Handle1Hitbox = true,
+									Handle2Hitbox = false,
+									SoundsTable = {
+										{
+											pitch = {
+												1
+											},
+											delaysound = {
+												0
+											},
+											volume = {
+												0.5
+											},
+											timeposition = {
+												0
+											},
+											soundType = "Swing",
+											soundID = "rbxassetid://5276819732"
+										},
+										{
+											pitch = {
+												1
+											},
+											delaysound = {
+												0
+											},
+											volume = {
+												0.5
+											},
+											timeposition = {
+												0
+											},
+											soundType = "ImpactSound",
+											soundID = "rbxassetid://935843979"
+										},
+										{
+											pitch = {
+												1
+											},
+											delaysound = {
+												0
+											},
+											volume = {
+												0.5
+											},
+											timeposition = {
+												0
+											},
+											soundType = "ImpactSound",
+											soundID = "rbxassetid://220834019"
+										},
+										{
+											pitch = {
+												1
+											},
+											delaysound = {
+												0
+											},
+											volume = {
+												0.5
+											},
+											timeposition = {
+												0
+											},
+											soundType = "ImpactSound",
+											soundID = "rbxassetid://220834000"
+										}
+									}
+								},
+								[5] = 1
+							}
+
+							game:GetService("ReplicatedStorage"):WaitForChild("Gui2"):WaitForChild("StarterGui"):FireServer(unpack(args))
+						end
+					end
+				end)
+			end
+			do
+				local row = titledRow(
+					form,
+					"เธฃเธฐเธขเธฐเนเธเธเธฒเธฃเธ•เธต",
+					"Radius fast attack เธ–เนเธฒเธเธฐkill all เนเธซเนเธเธฃเธฑเธเน€เธขเธญเธฐเน"
+				)
+
+				row:Right():TextField({
+					Value = "",
+					ValueChanged = function(self, value)
+						_G.Radiusfastattack = value
+					end,
+				})
+			end
+		end
+	end
+	local PathPartsFolder = workspace:FindFirstChild("PathParts") or Instance.new("Folder")
+	PathPartsFolder.Name = "PathParts"
+	PathPartsFolder.Parent = workspace
+
+	function DrawPathLine(startPos, endPos)
+		local part = Instance.new("Part")
+		part.Anchored = true
+		part.CanCollide = false
+		part.Material = Enum.Material.Neon
+		part.Color = Color3.fromRGB(180, 0, 255)
+		part.Transparency = 0.25
+		local distance = (startPos - endPos).Magnitude
+		part.Size = Vector3.new(0.2, 0.2, distance)
+		part.CFrame = CFrame.new(startPos, endPos) * CFrame.new(0, 0, -distance / 2)
+		part.Parent = PathPartsFolder
+	end
+
+	function ClearPathLines()
+		for _, v in pairs(PathPartsFolder:GetChildren()) do
+			v:Destroy()
+		end
+	end
+
+	function TPZ(p)
+		local character = LocalPlayer.Character
+		if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+		local hrp = character.HumanoidRootPart
+
+		ClearPathLines()
+
+		local path = PathfindingService:CreatePath({
+			AgentRadius = 2,
+			AgentHeight = 5,
+			AgentCanJump = true,
+			AgentJumpHeight = 10,
+			AgentMaxSlope = 45,
+		})
+		path:ComputeAsync(hrp.Position, p.Position)
+		local waypoints = path:GetWaypoints()
+
+		for i = 2, #waypoints do
+			DrawPathLine(waypoints[i-1].Position + Vector3.new(0,3,0), waypoints[i].Position + Vector3.new(0,3,0))
+		end
+
+		for i, waypoint in ipairs(waypoints) do
+			if _G.StopNow then break end
+
+			local targetCFrame = CFrame.new(waypoint.Position + Vector3.new(0, 3, 0))
+			local distance = (hrp.Position - targetCFrame.Position).Magnitude
+			local speed = 145
+
+			local tween = TweenService:Create(
+				hrp,
+				TweenInfo.new(distance / speed, Enum.EasingStyle.Linear),
+				{CFrame = targetCFrame}
+			)
+			tween:Play()
+			while tween.PlaybackState == Enum.PlaybackState.Playing do
+				if _G.StopNow then
+					tween:Cancel()
+					break
+				end
+				task.wait(0.05)
+			end
+
+			if tween.PlaybackState == Enum.PlaybackState.Playing then
+				tween.Completed:Wait()
+			end
+		end
+
+		ClearPathLines()
+	end
+	do
+		local tab = window:Tab({
+			Title = "Shop Tab",
+			Icon = cascade.Symbols.ez,
+		})
+
+		local form = tab:Form()
+		do
+			local row = titledRow(form, "เธซเธขเธธเธ”เธเธทเนเธญเธ—เธฑเธเธ—เธต", "")
+			row:Right():Button({
+				Label = "เธ•เธเธฅเธ",
+				State = "เธ•เธเธฅเธ",
+				Pushed = function(self)
+					ClearPathLines()
+					_G.StopNow = true
+					wait(0.2)
+					_G.StopNow = false
+				end,
+			})
+		end
+		do
+			local row = titledRow(form, "เธเธทเนเธญ เธเธดเธเธเธญเธเธเธฃเนเธฒ", "")
+			row:Right():Button({
+				Label = "เธ•เธเธฅเธ",
+				State = "เธ•เธเธฅเธ",
+				Pushed = function()
+					targets = {}
+					for i,v in pairs(workspace:GetChildren()) do
+						if v.Name == "เนเธญเนเธญเธฅเธกเนเธญเธเธเธฒเธขเธเธดเธเธเธญเธเธเธฃเนเธฒ" and v:FindFirstChild("HumanoidRootPart") then
+							table.insert(targets, v)
+						end
+					end
+
+					table.sort(targets, function(a,b)
+						return (a.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < (b.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+					end)
+
+					if targets[1] then
+						TPZ(targets[1].HumanoidRootPart.CFrame)
+					else
+						TPZ(CFrame.new(-62, 40, -245))
+					end
+				end,
+			})
+		end
+	end
+end
+
+task.spawn(function()
+	while task.wait() do
+		if _G.EnabledHitBox then
+			local size = tonumber(_G.HitBoxSize)
+			if size then
+				for i, v in pairs(workspace:GetChildren()) do
+					if v:FindFirstChild("HumanoidRootPart") and v ~= LocalPlayer.Character then
+						v.HumanoidRootPart.Size = Vector3.new(size, size, size)
+						v.HumanoidRootPart.Transparency = 0.85
+						v.HumanoidRootPart.Color = Color3.fromRGB(128, 0, 255)
+						v.HumanoidRootPart.Material = Enum.Material.Neon
+						v.HumanoidRootPart.CanCollide = false
+					end
+				end
+			end
+		end
+	end
+end)
+
+
+
+local jumping = false
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed or not _G.EnabledJumpsky then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space then
+        jumping = true
+    end
+end)
+game:GetService("UserInputService").InputEnded:Connect(function(input, gameProcessed)
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space then
+        jumping = false
+    end
+end)
+game:GetService("RunService").Heartbeat:Connect(function()
+    if jumping then
+        local Character = game.Players.LocalPlayer.Character
+        if Character and Character:FindFirstChild("Humanoid") then
+            Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+task.spawn(function()
+	while task.wait() do
+		local player = game:GetService("Players").LocalPlayer
+		local character = player.Character
+		if character and character:FindFirstChild("Humanoid") then
+			local humanoid = character.Humanoid
+
+			if _G.EnabledWalkSpeed then
+				humanoid.WalkSpeed = tonumber(_G.WalkSpeed)
+			end
+
+			if _G.EnabledJumpPower then
+				humanoid.JumpHeight = tonumber(_G.JumpPower)
+				humanoid.JumpPower = tonumber(_G.JumpPower)
+			end
+
+			if _G.EnabledNoclip then
+				for _, part in pairs(character:GetChildren()) do
+					if part:IsA("BasePart") then
+						part.CanCollide = false
+					end
+				end
+			else
+				for _, part in pairs(character:GetChildren()) do
+					if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+						part.CanCollide = true
+					end
+				end
+			end
+		end
+	end
+end)
+
+task.spawn(function()
+	while task.wait(0.3) do
+		if _G.FakeFPS then
+			local fpsGui = LocalPlayer:FindFirstChild("PlayerGui") 
+				and LocalPlayer.PlayerGui:FindFirstChild("fps_counter") 
+				and LocalPlayer.PlayerGui.fps_counter:FindFirstChild("fps_label")
+			
+			if fpsGui then
+				local minFPS = tonumber(_G.FPSValue)
+				local minFPS2 = tonumber(_G.FPSValue)
+				local minall = minFPS - minFPS2
+				local maxFPS = tonumber(_G.FPSValue)
+				local randomFPS = math.random(minall, maxFPS)
+				fpsGui.Text = tostring(randomFPS) .. " FPS"
+			end
+		end
+	end
+end)
+
+
+task.spawn(function()
+	while task.wait() do
+		if _G.FarmConstruct then
+			local Players = game:GetService("Players")
+			local LocalPlayer = Players.LocalPlayer
+			local Character = LocalPlayer.Character
+			if not Character then return end
+			local HRP = Character:WaitForChild("HumanoidRootPart")
+
+			local targetFolder = workspace["\224\184\135\224\184\178\224\184\153\224\184\129\224\185\136\224\184\173\224\184\170\224\184\163\224\185\137\224\184\178\224\184\135"]
+
+			local closestPart
+			local shortestDistance = math.huge
+
+			for _, obj in ipairs(targetFolder:GetChildren()) do
+				if obj:IsA("BasePart") then
+					local distance = (obj.Position - HRP.Position).Magnitude
+					if distance < shortestDistance and obj["Hold E"].Enabled then
+						shortestDistance = distance
+						closestPart = obj
+					end
+				end
+			end
+			if closestPart then
+				fireproximityprompt(closestPart["Hold E"], 0)
+				wait(3)
+			end
+		end
+	end
+end)
+
+task.spawn(function()
+	while task.wait() do
+		pcall(function()
+			if _G.FarmCement then
+				local targetPart = workspace.DeliverySystem.DontDeleteTheseObjects:FindFirstChild("TargetPart")
+				local jobPart = workspace.DeliverySystem.DontDeleteTheseObjects:FindFirstChild("GetJobPart")
+
+				if not targetPart or not jobPart then
+					if not targetPart then
+						TPX(CFrame.new(-359, 10, 54))
+						repeat task.wait() until (LocalPlayer.Character.HumanoidRootPart.Position - Vector3.new(-359, 20, 54)).Magnitude <= 25
+					else
+						TPX(CFrame.new(-870, 10, -148))
+						repeat task.wait() until (LocalPlayer.Character.HumanoidRootPart.Position - Vector3.new(-870, 20, -148)).Magnitude <= 25
+					end
+				else
+					if targetPart:FindFirstChild("TouchInterest") then
+						targetPart.TouchInterest:Destroy()
+					end
+
+					if targetPart:FindFirstChild("ProximityPrompt") then
+						targetPart.ProximityPrompt.HoldDuration = 0
+					end
+					if jobPart:FindFirstChild("ProximityPrompt") then
+						jobPart.ProximityPrompt.HoldDuration = 0
+					end
+					if workspace:GetChildren()[248]:FindFirstChild("Door1") then
+						workspace:GetChildren()[248].Door1:Destroy()
+					end
+					if LocalPlayer.Character:FindFirstChild("Package") or LocalPlayer.Backpack:FindFirstChild("Package") then
+						if (LocalPlayer.Character.HumanoidRootPart.Position - Vector3.new(-359, 20, 54)).Magnitude <= 25 then
+							LocalPlayer.Character:WaitForChild("Humanoid"):EquipTool(LocalPlayer.Backpack:FindFirstChild("Package"))
+							fireproximityprompt(targetPart.ProximityPrompt, 0)
+						else
+							firetouchinterest(game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart"), workspace["\224\184\149\224\185\137\224\184\153\224\185\132\224\184\161\224\185\137"]:GetChildren()[155].Model:GetChildren()[4]["PoseSeat 2.1"].Seat, 1)
+							wait(0.1)
+							firetouchinterest(game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart"), workspace["\224\184\149\224\185\137\224\184\153\224\185\132\224\184\161\224\185\137"]:GetChildren()[155].Model:GetChildren()[4]["PoseSeat 2.1"].Seat, 0)
+
+							repeat wait() until not LocalPlayer.Character.Humanoid.Sit
+							wait(0.5)
+							TPX(CFrame.new(-359, 10, 54))
+						end
+					else
+						if (LocalPlayer.Character.HumanoidRootPart.Position - Vector3.new(-870, 20, -148)).Magnitude <= 25 then
+							fireproximityprompt(jobPart.ProximityPrompt, 0)
+						else
+							firetouchinterest(game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart"), workspace:GetChildren()[248]:GetChildren()[10]:GetChildren()[5].Body["PoseSeat 2.1"].Seat, 1)
+							wait(0.1)
+							firetouchinterest(game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart"), workspace:GetChildren()[248]:GetChildren()[10]:GetChildren()[5].Body["PoseSeat 2.1"].Seat, 0)
+
+							repeat wait() until not LocalPlayer.Character.Humanoid.Sit
+							wait(0.5)
+							TPX(CFrame.new(-870, 10, -148))
+						end
+					end
+				end
+			end
+		end)
+	end
+end)
+task.spawn(function()
+	while task.wait() do
+		if _G.FarmCement  then
+			game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame.X, 10, game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame.Z)
+		end
+	end
+end)
+
+task.spawn(function()
+	while task.wait() do
+		if _G.FarmCement and LocalPlayer.Character.Humanoid.Sit then
+			LocalPlayer.Character.Humanoid.Sit = false
+		end
+	end
+end)
