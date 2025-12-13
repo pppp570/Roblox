@@ -1,0 +1,37 @@
+-- สร้างปุ่ม
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer.PlayerGui
+
+local Button = Instance.new("TextButton")
+Button.Parent = ScreenGui
+Button.Size = UDim2.new(0, 130, 0, 40) -- ขนาดปุ่ม
+Button.Position = UDim2.new(1, -150, 0, 10) -- ตำแหน่งขวาบน
+Button.BackgroundColor3 = Color3.new(0, 0, 1) -- สีพื้นหลัง
+Button.TextColor3 = Color3.new(1, 1, 1) -- สีตัวอักษร
+Button.Text = "ดึง"
+Button.Font = Enum.Font.SourceSansBold
+Button.TextScaled = true
+
+-- ฟังก์ชันดึงคน
+local function PullPlayers()
+    local character = game.Players.LocalPlayer.Character
+    if not character then return end
+
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            local otherCharacter = player.Character
+            if otherCharacter then
+                local otherHumanoidRootPart = otherCharacter:FindFirstChild("HumanoidRootPart")
+                if otherHumanoidRootPart then
+                    otherHumanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.new(0, 0, -5) -- ดึงมาข้างหน้า 5 หน่วย
+                end
+            end
+        end
+    end
+end
+
+-- เชื่อมปุ่มกับฟังก์ชัน
+Button.MouseButton1Click:Connect(PullPlayers)
