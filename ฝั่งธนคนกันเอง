@@ -1,118 +1,109 @@
--- SERVICES
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+local Window = WindUI:CreateWindow({
+    Title = "So Hub",
+    Icon = "https://cdn.discordapp.com/attachments/1414181181246799983/1451950673259270244/109_20251220214919-removebg-preview_1.png?ex=6948b2b0&is=69476130&hm=8da5f898593a4acea1a578b8249e14075e8cc88a2e4f4bf53ad9f1743f957a7d&", -- lucide icon
+    Author = "ฝั่งธนคนกันเอง",
+    Folder = "MySuperHub",
+    
+    -- ↓ This all is Optional. You can remove it.
+    Size = UDim2.fromOffset(580, 460),
+    MinSize = Vector2.new(560, 350),
+    MaxSize = Vector2.new(850, 560),
+    Transparent = true,
+    Theme = "Dark",
+    Resizable = true,
+    SideBarWidth = 200,
+    BackgroundImageTransparency = 0.42,
+    HideSearchBar = true,
+    ScrollBarEnabled = false,
+    
+    -- ↓ Optional. You can remove it.
+    --[[ You can set 'rbxassetid://' or video to Background.
+        'rbxassetid://':
+            Background = "rbxassetid://", -- rbxassetid
+        Video:
+            Background = "video:YOUR-RAW-LINK-TO-VIDEO.webm", -- video 
+    --]]
+    
+    -- ↓ Optional. You can remove it.
+    User = {
+        Enabled = true,
+        Anonymous = true,
+        Callback = function()
+            print("clicked")
+        end,
+    },
+    
+    --       remove this all, 
+    -- !  ↓  if you DON'T need the key system
+    KeySystem = { 
+        -- ↓ Optional. You can remove it.
+        Key = { "jOhgG1BPYqDWxHnadnz2kMr3fMyMkliO", "5678" },
+        
+        Note = "Example Key System.",
+        
+        -- ↓ Optional. You can remove it.
+        Thumbnail = {
+            Image = "rbxassetid://125250695222888",
+            Title = "",
+        },
+        
+        -- ↓ Optional. You can remove it.
+        URL = "jOhgG1BPYqDWxHnadnz2kMr3fMyMkliO",
+        
+        -- ↓ Optional. You can remove it.
+        SaveKey = false, -- automatically save and load the key.
+        
+        -- ↓ Optional. You can remove it.
+        -- API = {} ← Services. Read about it below ↓
+    },
+})
+Window:EditOpenButton({
+    Title = "So Hub",
+    Icon = "https://cdn.discordapp.com/attachments/1414181181246799983/1451950673259270244/109_20251220214919-removebg-preview_1.png?ex=6948b2b0&is=69476130&hm=8da5f898593a4acea1a578b8249e14075e8cc88a2e4f4bf53ad9f1743f957a7d&",
+    CornerRadius = UDim.new(0,16),
+    StrokeThickness = 2,
+    Color = ColorSequence.new( -- gradient
+        Color3.fromHex("00FF00"), 
+        Color3.fromHex("FF0000")
+    ),
+    OnlyMobile = false,
+    Enabled = true,
+    Draggable = true,
+})
+
+Window:Tag({
+    Title = "เบียวอาชีวะ",
+    Icon = "monitor-cog",
+    Color = Color3.fromHex("#30ff6a"),
+    Radius = 13, -- from 0 to 13
+})
+local Tab = Window:Tab({
+    Title = "ฟาม",
+    Icon = "ambulance", -- optional
+    Locked = false,
+})
+local Button = Tab:Button({
+    Title = "ฟาม",
+    Desc = "Test Button",
+    Locked = false,
+    Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/%E0%B8%9D%E0%B8%B1%E0%B9%88%E0%B8%87%E0%B8%98%E0%B8%99%E0%B8%84%E0%B8%99%E0%B8%81%E0%B8%B1%E0%B8%99%E0%B9%80%E0%B8%AD%E0%B8%87 ", true))()
+    end
+})
+local Button = Tab:Button({
+    Title = "วาป",
+    Desc = "กดเพื่อวาป",
+    Locked = false,
+    Callback = function()
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-
 local player = Players.LocalPlayer
-
---------------------------------------------------
--- TARGET
---------------------------------------------------
-local target = workspace["\224\184\151\224\184\181\224\185\136\224\184\159\224\184\178\224\184\161"]
-	.Model:GetChildren()[2]
-
-local prompt = target:FindFirstChildWhichIsA("ProximityPrompt", true)
-if not prompt then
-	warn("❌ ไม่พบ ProximityPrompt")
-	return
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-220.54, 28.21, -322.66)
+local function WarpToPosition()
+	root.CFrame = CFrame.new(WarpPosition)
 end
-
-prompt.HoldDuration = 0
-prompt.RequiresLineOfSight = false
-
---------------------------------------------------
--- GUI
---------------------------------------------------
-local gui = Instance.new("ScreenGui")
-gui.Name = "AutoE_RGB_UI"
-gui.ResetOnSpawn = false
-gui.Parent = player.PlayerGui
-
--- MAIN
-local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 260, 0, 140)
-main.Position = UDim2.new(0.5, -130, 0.5, -70)
-main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-main.Parent = gui
-main.Active = true
-main.Draggable = true
-Instance.new("UICorner", main).CornerRadius = UDim.new(0, 16)
-
--- RGB BORDER
-local stroke = Instance.new("UIStroke")
-stroke.Thickness = 3
-stroke.Parent = main
-
---------------------------------------------------
--- TITLE
---------------------------------------------------
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 40)
-title.BackgroundTransparency = 1
-title.Text = "ฟาม"
-title.Font = Enum.Font.GothamBold
-title.TextSize = 22
-title.TextColor3 = Color3.new(1,1,1)
-title.Parent = main
-
-local status = Instance.new("TextLabel")
-status.Size = UDim2.new(1, 0, 0, 30)
-status.Position = UDim2.new(0, 0, 0, 40)
-status.BackgroundTransparency = 1
-status.Text = "STATUS : OFF"
-status.Font = Enum.Font.Gotham
-status.TextSize = 16
-status.TextColor3 = Color3.fromRGB(255, 80, 80)
-status.Parent = main
-
---------------------------------------------------
--- BUTTON
---------------------------------------------------
-local btn = Instance.new("TextButton")
-btn.Size = UDim2.new(0, 180, 0, 40)
-btn.Position = UDim2.new(0.5, -90, 1, -55)
-btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-btn.Text = "TURN เปิด"
-btn.TextColor3 = Color3.new(1,1,1)
-btn.Font = Enum.Font.GothamBold
-btn.TextSize = 18
-btn.Parent = main
-Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
-
---------------------------------------------------
--- LOGIC
---------------------------------------------------
-local Auto = false
-
-btn.MouseButton1Click:Connect(function()
-	Auto = not Auto
-	if Auto then
-		status.Text = "STATUS : ON"
-		status.TextColor3 = Color3.fromRGB(120, 255, 120)
-		btn.Text = "ปิด"
-	else
-		status.Text = "STATUS : OFF"
-		status.TextColor3 = Color3.fromRGB(255, 80, 80)
-		btn.Text = "เปิด"
-	end
-end)
-
-RunService.RenderStepped:Connect(function()
-	if Auto then
-		pcall(function()
-			fireproximityprompt(prompt)
-		end)
-	end
-end)
-
---------------------------------------------------
--- RGB BORDER ANIMATION
---------------------------------------------------
-task.spawn(function()
-	local hue = 0
-	while true do
-		hue = (hue + 1) % 360
-		stroke.Color = Color3.fromHSV(hue / 360, 1, 1)
-		task.wait(0.02)
-	end
-end)
+WarpToPosition()
+end
+})
