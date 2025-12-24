@@ -1,0 +1,118 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+
+--------------------------------------------------
+-- TARGET
+--------------------------------------------------
+local target = workspace["\224\184\151\224\184\181\224\185\136\224\184\159\224\184\178\224\184\161"]
+	.Model:GetChildren()[2]
+
+local prompt = target:FindFirstChildWhichIsA("ProximityPrompt", true)
+if not prompt then
+	warn("❌ ไม่พบ ProximityPrompt")
+	return
+end
+
+prompt.HoldDuration = 0
+prompt.RequiresLineOfSight = false
+
+--------------------------------------------------
+-- GUI
+--------------------------------------------------
+local gui = Instance.new("ScreenGui")
+gui.Name = "AutoE_RGB_UI"
+gui.ResetOnSpawn = false
+gui.Parent = player.PlayerGui
+
+-- MAIN
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 260, 0, 140)
+main.Position = UDim2.new(0.5, -130, 0.5, -70)
+main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+main.Parent = gui
+main.Active = true
+main.Draggable = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 16)
+
+-- RGB BORDER
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 3
+stroke.Parent = main
+
+--------------------------------------------------
+-- TITLE
+--------------------------------------------------
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundTransparency = 1
+title.Text = "AUTO E"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+title.TextColor3 = Color3.new(1,1,1)
+title.Parent = main
+
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, 0, 0, 30)
+status.Position = UDim2.new(0, 0, 0, 40)
+status.BackgroundTransparency = 1
+status.Text = "STATUS : OFF"
+status.Font = Enum.Font.Gotham
+status.TextSize = 16
+status.TextColor3 = Color3.fromRGB(255, 80, 80)
+status.Parent = main
+
+--------------------------------------------------
+-- BUTTON
+--------------------------------------------------
+local btn = Instance.new("TextButton")
+btn.Size = UDim2.new(0, 180, 0, 40)
+btn.Position = UDim2.new(0.5, -90, 1, -55)
+btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+btn.Text = "TURN ON"
+btn.TextColor3 = Color3.new(1,1,1)
+btn.Font = Enum.Font.GothamBold
+btn.TextSize = 18
+btn.Parent = main
+Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+
+--------------------------------------------------
+-- LOGIC
+--------------------------------------------------
+local Auto = false
+
+btn.MouseButton1Click:Connect(function()
+	Auto = not Auto
+	if Auto then
+		status.Text = "STATUS : ON"
+		status.TextColor3 = Color3.fromRGB(120, 255, 120)
+		btn.Text = "TURN OFF"
+	else
+		status.Text = "STATUS : OFF"
+		status.TextColor3 = Color3.fromRGB(255, 80, 80)
+		btn.Text = "TURN ON"
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	if Auto then
+		pcall(function()
+			fireproximityprompt(prompt)
+		end)
+	end
+end)
+
+--------------------------------------------------
+-- RGB BORDER ANIMATION
+--------------------------------------------------
+task.spawn(function()
+	local hue = 0
+	while true do
+		hue = (hue + 1) % 360
+		stroke.Color = Color3.fromHSV(hue / 360, 1, 1)
+		task.wait(0.02)
+	end
+end)
