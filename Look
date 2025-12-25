@@ -1,287 +1,244 @@
--- ==========================
+--------------------------------------------------
 -- SERVICES
--- ==========================
+--------------------------------------------------
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
--- ==========================
--- VARIABLES
--- ==========================
-local AimEnabled = false
-local StopAll = false
-local Smoothness = 0.02
+--------------------------------------------------
+-- LOAD WINDUI
+--------------------------------------------------
+local WindUI = loadstring(game:HttpGet(
+    "https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"
+))()
+
+--------------------------------------------------
+-- SETTINGS
+--------------------------------------------------
+local AimEnabled = true
+local ShowFOV = true
+
 local FOVRadius = 150
-local ESPEnabled = true
-local HitboxEnabled = false
-local NoclipEnabled = false
-_G.HeadSize = 20
-_G.InfiniteJumpEnabled = true
+local PreLockRadius = FOVRadius * 1.4
+local Sides = 8
 
--- ==========================
--- DRAWINGS
--- ==========================
-local FOV = Drawing.new("Circle")
-FOV.Thickness = 2
-FOV.NumSides = 80
-FOV.Radius = FOVRadius
-FOV.Color = Color3.fromRGB(90, 160, 255)
-FOV.Filled = false
-FOV.Visible = true
+local FOVColor = Color3.fromRGB(255,255,255)
+local AimColor = Color3.fromRGB(0,200,255)
 
-local Line = Drawing.new("Line")
-Line.Thickness = 2
-Line.Color = Color3.fromRGB(0, 0, 0)
-Line.Visible = false
+--------------------------------------------------
+-- DRAWING
+--------------------------------------------------
+local FOVLines = {}
+for i = 1, Sides do
+    local l = Drawing.new("Line")
+    l.Thickness = 2
+    l.Color = FOVColor
+    l.Visible = true
+    table.insert(FOVLines, l)
+end
 
-local Box = Drawing.new("Square")
-Box.Thickness = 2
-Box.Color = Color3.fromRGB(0, 0, 0)
-Box.Filled = false
-Box.Size = Vector2.new(40, 40)
-Box.Visible = false
+local AimLine = Drawing.new("Line")
+AimLine.Thickness = 4
+AimLine.Color = AimColor
+AimLine.Visible = false
 
-local ESPBars = {}
-local BAR_WIDTH = 5
-local BAR_HEIGHT = 50
-local BAR_OFFSET_X = 20
+local TargetDot = Drawing.new("Circle")
+TargetDot.Radius = 4
+TargetDot.Filled = true
+TargetDot.Color = AimColor
+TargetDot.Visible = false
 
--- ==========================
--- FUNCTIONS
--- ==========================
-local function GetNearestCharacter()
-    local nearest = nil
-    local shortest = math.huge
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 then
-            local headPos = plr.Character.Head.Position
-            local screenPos, onScreen = Camera:WorldToViewportPoint(headPos)
-            if onScreen then
-                local dist = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
-                if dist < FOVRadius and dist < shortest then
-                    shortest = dist
-                    nearest = plr.Character.Head
+--------------------------------------------------
+-- TARGETS
+--------------------------------------------------
+local Targets = {}
+
+--------------------------------------------------
+-- UTIL
+--------------------------------------------------
+local function IsAlive(char)
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    return hum and hum.Health > 0
+end
+
+-- เห็น = true ทันที
+local function IsVisible(part)
+    local origin = Camera.CFrame.Position
+    local dir = part.Position - origin
+
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Blacklist
+    params.FilterDescendantsInstances = {LocalPlayer.Character}
+
+    local result = workspace:Raycast(origin, dir, params)
+    if not result then
+        return true
+    end
+
+    return result.Instance:IsDescendantOf(part.Parent)
+end
+
+-- จุดหัวตรง ๆ
+local function GetAimPosition(head)
+    return head.Position
+end
+
+local function GetPolygonPoints(center)
+    local pts = {}
+    for i = 1, Sides do
+        local a = (2 * math.pi / Sides) * i
+        pts[i] = Vector2.new(
+            center.X + math.cos(a) * FOVRadius,
+            center.Y + math.sin(a) * FOVRadius
+        )
+    end
+    return pts
+end
+
+--------------------------------------------------
+-- UPDATE TARGETS
+--------------------------------------------------
+local function UpdateTargets()
+    Targets = {}
+    local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and IsAlive(plr.Character) then
+            local head = plr.Character:FindFirstChild("Head")
+            if head then
+                local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
+                if onScreen and IsVisible(head) then
+                    local dist = (Vector2.new(pos.X,pos.Y) - center).Magnitude
+                    if dist <= PreLockRadius then
+                        table.insert(Targets, head)
+                    end
                 end
             end
         end
     end
-    return nearest
 end
 
--- ==========================
--- ESP Drawing
--- ==========================
-local function CreateESP(player)
-    local bar = Drawing.new("Square")
-    bar.Size = Vector2.new(BAR_WIDTH, BAR_HEIGHT)
-    bar.Color = Color3.fromRGB(0,255,0)
-    bar.Thickness = 1
-    bar.Filled = true
-    bar.Visible = ESPEnabled
-    return bar
-end
+--------------------------------------------------
+-- GET CLOSEST TARGET
+--------------------------------------------------
+local function GetClosestTarget()
+    local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+    local closest, minDist = nil, math.huge
 
-for _, player in pairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        ESPBars[player] = CreateESP(player)
-    end
-end
+    for _, head in ipairs(Targets) do
+        local pos = Camera:WorldToViewportPoint(head.Position)
+        local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude
 
-Players.PlayerAdded:Connect(function(player)
-    if player ~= LocalPlayer then
-        ESPBars[player] = CreateESP(player)
-    end
-end)
-
-Players.PlayerRemoving:Connect(function(player)
-    if ESPBars[player] then
-        ESPBars[player]:Remove()
-        ESPBars[player] = nil
-    end
-end)
-
--- ==========================
--- HITBOX FUNCTIONS
--- ==========================
-local OriginalProps = {}
-local function setHitbox(plr)
-    if plr == LocalPlayer then return end
-    if not plr.Character then return end
-    local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    pcall(function()
-        if not OriginalProps[plr] then
-            OriginalProps[plr] = {
-                Size = hrp.Size,
-                Shape = hrp.Shape,
-                Transparency = hrp.Transparency,
-                BrickColor = hrp.BrickColor,
-                Material = hrp.Material,
-                CanCollide = hrp.CanCollide
-            }
-        end
-        hrp.Size = Vector3.new(_G.HeadSize, _G.HeadSize, _G.HeadSize)
-        hrp.Shape = Enum.PartType.Ball
-        hrp.Transparency = 0.7
-        hrp.BrickColor = BrickColor.new("Really black")
-        hrp.Material = Enum.Material.Neon
-        hrp.CanCollide = false
-    end)
-end
-
--- ==========================
--- UI SETUP (WindUI)
--- ==========================
-local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
-local Window = WindUI:CreateWindow({
-    Title = "So Hub",
-    HideSearchBar = false -- เพิ่มตรงนี้
-})
-Window:ToggleTransparency(true)
-Window:Tag({Title="pro ", Icon="ghost", Color=Color3.fromHex("#FFFFFF"), Radius=13})
-
--- AIM TAB
-local AimTab = Window:Tab({Title="Aim"})
-AimTab:Toggle({Title="AimBot", Desc="เปิด/ปิด AimBot", Icon="crosshair", Type="Checkbox", Value=false, Callback=function(state) AimEnabled = state end})
-AimTab:Toggle({Title="Stop All", Desc="หยุด/เริ่ม AimBot และ FOV", Icon="ban", Type="Checkbox", Value=false, Callback=function(state)
-    StopAll = state
-    FOV.Visible = not StopAll
-    Line.Visible = false
-    Box.Visible = false
-end})
-AimTab:Slider({Title="Smoothness", Min=0.001, Max=0.1, Default=Smoothness, Callback=function(val) Smoothness=val end})
-AimTab:Slider({Title="FOV Radius", Min=50, Max=300, Default=FOVRadius, Callback=function(val) FOVRadius=val; FOV.Radius=val end})
-
--- PLAYERS TAB
-local PlayersTab = Window:Tab({Title="Players"})
-PlayersTab:Toggle({Title="กระโดดไม่จำกัด", Desc="เปิด/ปิด", Default=true, Callback=function(state) _G.InfiniteJumpEnabled = state end})
-PlayersTab:Toggle({Title="วิ่งเร็ว", Desc="เปิด/ปิด", Default=true, Callback=function(state)
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = state and 16 or 16
-    end
-end})
-PlayersTab:Slider({Title="WalkSpeed", Desc="ปรับความเร็วเดิน", Step=1, Value={Min=16, Max=200, Default=16}, Callback=function(value)
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = value
-    end
-end})
-PlayersTab:Toggle({Title="Hitbox", Desc="HumanoidRootPart", Default=false, Callback=function(state)
-    HitboxEnabled = state
-    if not HitboxEnabled then
-        for _, plr in pairs(Players:GetPlayers()) do
-            if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and OriginalProps[plr] then
-                local hrp = plr.Character.HumanoidRootPart
-                hrp.Size = OriginalProps[plr].Size
-                hrp.Shape = OriginalProps[plr].Shape
-                hrp.Transparency = OriginalProps[plr].Transparency
-                hrp.BrickColor = OriginalProps[plr].BrickColor
-                hrp.Material = OriginalProps[plr].Material
-                hrp.CanCollide = OriginalProps[plr].CanCollide
-            end
+        if dist < minDist then
+            minDist = dist
+            closest = head
         end
     end
-end})
-PlayersTab:Toggle({Title="Noclip", Desc="เปิด/ปิดทะลุวัตถุ", Default=false, Callback=function(state)
-    NoclipEnabled = state
-end})
 
--- ESP TAB
-local ESPTab = Window:Tab({Title="ESP"})
-ESPTab:Toggle({Title="Enable ESP", Default=true, Callback=function(state) ESPEnabled=state; for _, bar in pairs(ESPBars) do bar.Visible=ESPEnabled end end})
+    return closest
+end
 
--- ==========================
--- EVENTS
--- ==========================
-UserInputService.JumpRequest:Connect(function()
-    if _G.InfiniteJumpEnabled and LocalPlayer.Character then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
-    end
-end)
-
-Players.PlayerAdded:Connect(function(plr)
-    plr.CharacterAdded:Connect(function()
-        task.wait(0.5)
-        if HitboxEnabled then setHitbox(plr) end
-    end)
-end)
-
--- ==========================
--- MAIN LOOP
--- ==========================
+--------------------------------------------------
+-- MAIN LOOP (HARD LOCK)
+--------------------------------------------------
 RunService.RenderStepped:Connect(function()
-    FOV.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
-    if StopAll then
-        Line.Visible = false
-        FOV.Visible = false
-        Box.Visible = false
+    local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+
+    -- FOV
+    local pts = GetPolygonPoints(center)
+    for i = 1, Sides do
+        FOVLines[i].From = pts[i]
+        FOVLines[i].To = pts[(i % Sides) + 1]
+        FOVLines[i].Visible = ShowFOV
+        FOVLines[i].Color = FOVColor
+    end
+
+    if not AimEnabled then
+        AimLine.Visible = false
+        TargetDot.Visible = false
         return
     end
 
-    -- AimBot
-    if AimEnabled then
-        local target = GetNearestCharacter()
-        if target then
-            local screenPos, vis = Camera:WorldToViewportPoint(target.Position)
-            if vis then
-                Line.From = FOV.Position
-                Line.To = Vector2.new(screenPos.X, screenPos.Y)
-                Line.Visible = true
+    UpdateTargets()
 
-                Box.Position = Vector2.new(screenPos.X - Box.Size.X/2, screenPos.Y - Box.Size.Y/2)
-                Box.Visible = true
+    local head = GetClosestTarget()
+    if head then
+        local aimPos = GetAimPosition(head)
 
-                local camCFrame = Camera.CFrame
-                local lookVector = (target.Position - camCFrame.Position).Unit
-                Camera.CFrame = CFrame.new(camCFrame.Position, camCFrame.Position + lookVector:Lerp(camCFrame.LookVector, Smoothness))
-            else
-                Line.Visible = false
-                Box.Visible = false
-            end
-        else
-            Line.Visible = false
-            Box.Visible = false
-        end
+        -- 🔥 ล็อคทันที ไม่มี Smooth
+        Camera.CFrame = CFrame.new(Camera.CFrame.Position, aimPos)
+
+        local pos = Camera:WorldToViewportPoint(aimPos)
+        local p2d = Vector2.new(pos.X, pos.Y)
+
+        AimLine.From = center
+        AimLine.To = p2d
+        AimLine.Visible = true
+
+        TargetDot.Position = p2d
+        TargetDot.Visible = true
     else
-        Line.Visible = false
-        Box.Visible = false
-    end
-
-    -- Hitbox
-    if HitboxEnabled then
-        for _, plr in pairs(Players:GetPlayers()) do setHitbox(plr) end
-    end
-
-    -- Noclip (อัปเดตตลอดเวลา)
-    if LocalPlayer.Character then
-        for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = not NoclipEnabled and true or false
-            end
-        end
-    end
-
-    -- Update ESP Bars
-    for player, bar in pairs(ESPBars) do
-        if ESPEnabled then
-            local char = player.Character
-            if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") then
-                local hrp = char.HumanoidRootPart
-                local humanoid = char.Humanoid
-                local screenPos, onScreen = Camera:WorldToViewportPoint(hrp.Position + Vector3.new(0,3,0))
-                bar.Visible = onScreen
-                if onScreen then
-                    local healthRatio = math.clamp(humanoid.Health / humanoid.MaxHealth,0,1)
-                    bar.Size = Vector2.new(BAR_WIDTH, BAR_HEIGHT * healthRatio)
-                    bar.Position = Vector2.new(screenPos.X + BAR_OFFSET_X, screenPos.Y - BAR_HEIGHT * healthRatio)
-                    bar.Color = Color3.new(1 - healthRatio, healthRatio, 0)
-                end
-            else
-                bar.Visible = false
-            end
-        else
-            bar.Visible = false
-        end
+        AimLine.Visible = false
+        TargetDot.Visible = false
     end
 end)
+
+--------------------------------------------------
+-- WINDUI
+--------------------------------------------------
+local Window = WindUI:CreateWindow({
+    Title = "AimLock Hub",
+    Author = "by ChatGPT",
+    Folder = "AimLockUI",
+    OpenButton = { Enabled = true }
+})
+
+local MainTab = Window:Tab({ Title = "Main" })
+
+MainTab:Toggle({
+    Title = "Enable AimLock",
+    Default = AimEnabled,
+    Callback = function(v)
+        AimEnabled = v
+    end
+})
+
+MainTab:Toggle({
+    Title = "Show FOV",
+    Default = ShowFOV,
+    Callback = function(v)
+        ShowFOV = v
+    end
+})
+
+MainTab:Slider({
+    Title = "FOV Radius",
+    Value = {
+        Min = 50,
+        Max = 400,
+        Default = FOVRadius
+    },
+    Callback = function(v)
+        FOVRadius = v
+        PreLockRadius = v * 1.4
+    end
+})
+
+MainTab:Colorpicker({
+    Title = "FOV Color",
+    Default = FOVColor,
+    Callback = function(c)
+        FOVColor = c
+    end
+})
+
+MainTab:Colorpicker({
+    Title = "Aim Color",
+    Default = AimColor,
+    Callback = function(c)
+        AimColor = c
+        AimLine.Color = c
+        TargetDot.Color = c
+    end
+})
