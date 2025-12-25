@@ -188,8 +188,8 @@ end)
 -- WINDUI
 --------------------------------------------------
 local Window = WindUI:CreateWindow({
-    Title = "AimLock Hub",
-    Author = "by ChatGPT",
+    Title = "so Hub",
+    Author = "look",
     Folder = "AimLockUI",
     OpenButton = { Enabled = true }
 })
