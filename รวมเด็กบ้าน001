@@ -1,0 +1,107 @@
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+local Window = WindUI:CreateWindow({
+    Title = "So Hub",
+    Icon = "drumstick", -- lucide icon
+    Author = "รวมเด็กบ้าน",
+Background = "rbxassetid://80211841921614",
+    Folder = "Dark",
+    
+    -- ↓ This all is Optional. You can remove it.
+    Size = UDim2.fromOffset(580, 460),
+    MinSize = Vector2.new(560, 350),
+    MaxSize = Vector2.new(850, 560),
+    Transparent = true,
+    Theme = "Dark",
+    Resizable = true,
+    SideBarWidth = 200,
+    BackgroundImageTransparency = 0.42,
+    HideSearchBar = true,
+    ScrollBarEnabled = false,
+    
+    -- ↓ Optional. You can remove it.
+    --[[ You can set 'rbxassetid://' or video to Background.
+        'rbxassetid://':
+            Background = "rbxassetid://", -- rbxassetid
+        Video:
+            Background = "video:YOUR-RAW-LINK-TO-VIDEO.webm", -- video 
+    --]]
+    
+    -- ↓ Optional. You can remove it.
+    User = {
+        Enabled = true,
+        Anonymous = false,
+        Callback = function()
+            print("clicked")
+        end,
+    },
+    
+    --       remove this all, 
+    -- !  ↓  if you DON'T need the key system
+    KeySystem = { 
+        -- ↓ Optional. You can remove it.
+        Key = { "1234", "5678" },
+        
+        Note = "Example Key System.",
+        
+        -- ↓ Optional. You can remove it.
+        Thumbnail = {
+            Image = "rbxassetid://100154960202028",
+            Title = "",
+        },
+        
+        -- ↓ Optional. You can remove it.
+        URL = "1234",
+        
+        -- ↓ Optional. You can remove it.
+        SaveKey = false, -- automatically save and load the key.
+        
+        -- ↓ Optional. You can remove it.
+        -- API = {} ← Services. Read about it below ↓
+    },
+})
+local Tab = Window:Tab({
+    Title = "Farm",
+    Icon = "tractor", -- optional
+    Locked = false,
+})
+local Button = Tab:Button({
+    Title = "ฟาม",
+    Desc = "กดเปิดเพื่อฟาม",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet(" https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/%E0%B8%9F%E0%B8%B2%E0%B8%A1%E0%B9%80%E0%B8%84%E0%B8%A3%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%87 ", true))()
+    end
+})
+local Tab = Window:Tab({
+    Title = "Settings",
+    Icon = "bolt", -- optional
+    Locked = false,
+})
+local Button = Tab:Button({
+    Title = "ฟาม",
+    Desc = "กดเพื่อวาป",
+    Locked = false,
+    Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local WarpPosition = Vector3.new(-411.26, 82.34, 487.29)
+local function WarpToPosition()
+	root.CFrame = CFrame.new(WarpPosition)
+end
+WarpToPosition()
+end
+})
+
+local Button = Tab:Button({
+    Title = "bypass tp",
+    Desc = "บายพาสกันวาป",
+    Locked = false,
+    Callback = function()
+        for i = 1, 3 do
+game.Players.LocalPlayer.Character.Humanoid.Sit = true; task.wait(0.5)
+game.Players.LocalPlayer.Character.Humanoid.Jump = true
+end
+    end
+})
