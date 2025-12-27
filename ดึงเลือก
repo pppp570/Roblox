@@ -1,0 +1,261 @@
+--------------------------------------------------
+-- SERVICES
+--------------------------------------------------
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local enabled = false
+local connection
+local angle = 0
+local spinSpeed = 2 -- <<< ความเร็วเริ่มต้น
+
+--------------------------------------------------
+-- STATE
+--------------------------------------------------
+local selected = {}
+local modeAll = false
+
+--------------------------------------------------
+-- GUI
+--------------------------------------------------
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.Name = "SpinGui"
+gui.ResetOnSpawn = false
+
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0,280,0,420)
+main.Position = UDim2.new(0,30,0,180)
+main.BackgroundColor3 = Color3.fromRGB(18,18,18)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,16)
+
+--------------------------------------------------
+-- TITLE
+--------------------------------------------------
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,0,0,32)
+title.BackgroundTransparency = 1
+title.Text = "ดึงรวม"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 15
+title.TextColor3 = Color3.fromRGB(255,255,255)
+
+--------------------------------------------------
+-- TOGGLE
+--------------------------------------------------
+local toggle = Instance.new("TextButton", main)
+toggle.Size = UDim2.new(1,-30,0,36)
+toggle.Position = UDim2.new(0,15,0,38)
+toggle.Text = "OFF"
+toggle.Font = Enum.Font.GothamBold
+toggle.TextSize = 14
+toggle.TextColor3 = Color3.fromRGB(255,90,90)
+toggle.BackgroundColor3 = Color3.fromRGB(40,40,40)
+toggle.BorderSizePixel = 0
+Instance.new("UICorner", toggle)
+
+--------------------------------------------------
+-- SPEED CONTROLLER
+--------------------------------------------------
+local speedFrame = Instance.new("Frame", main)
+speedFrame.Size = UDim2.new(1,-30,0,36)
+speedFrame.Position = UDim2.new(0,15,0,82)
+speedFrame.BackgroundTransparency = 1
+
+local speedText = Instance.new("TextLabel", speedFrame)
+speedText.Size = UDim2.new(0.4,0,1,0)
+speedText.BackgroundTransparency = 1
+speedText.Text = "Speed: 2.0"
+speedText.Font = Enum.Font.GothamBold
+speedText.TextSize = 13
+speedText.TextColor3 = Color3.fromRGB(255,255,255)
+
+local speedMinus = Instance.new("TextButton", speedFrame)
+speedMinus.Size = UDim2.new(0.28,-5,1,0)
+speedMinus.Position = UDim2.new(0.4,0,0,0)
+speedMinus.Text = "➖"
+speedMinus.Font = Enum.Font.GothamBold
+speedMinus.TextSize = 16
+speedMinus.BackgroundColor3 = Color3.fromRGB(35,35,35)
+speedMinus.BorderSizePixel = 0
+Instance.new("UICorner", speedMinus)
+
+local speedPlus = Instance.new("TextButton", speedFrame)
+speedPlus.Size = UDim2.new(0.28,-5,1,0)
+speedPlus.Position = UDim2.new(0.68,0,0,0)
+speedPlus.Text = "➕"
+speedPlus.Font = Enum.Font.GothamBold
+speedPlus.TextSize = 16
+speedPlus.BackgroundColor3 = Color3.fromRGB(35,35,35)
+speedPlus.BorderSizePixel = 0
+Instance.new("UICorner", speedPlus)
+
+--------------------------------------------------
+-- MODE BUTTONS
+--------------------------------------------------
+local singleBtn = Instance.new("TextButton", main)
+singleBtn.Size = UDim2.new(0.48,-10,0,30)
+singleBtn.Position = UDim2.new(0,15,0,128)
+singleBtn.Text = "👤 Select"
+singleBtn.Font = Enum.Font.GothamBold
+singleBtn.TextSize = 13
+singleBtn.TextColor3 = Color3.fromRGB(120,255,170)
+singleBtn.BackgroundColor3 = Color3.fromRGB(35,65,50)
+singleBtn.BorderSizePixel = 0
+Instance.new("UICorner", singleBtn)
+
+local allBtn = Instance.new("TextButton", main)
+allBtn.Size = UDim2.new(0.48,-10,0,30)
+allBtn.Position = UDim2.new(0.52,5,0,128)
+allBtn.Text = "👥 All"
+allBtn.Font = Enum.Font.GothamBold
+allBtn.TextSize = 13
+allBtn.TextColor3 = Color3.fromRGB(200,200,200)
+allBtn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+allBtn.BorderSizePixel = 0
+Instance.new("UICorner", allBtn)
+
+--------------------------------------------------
+-- PLAYER LIST
+--------------------------------------------------
+local listFrame = Instance.new("Frame", main)
+listFrame.Position = UDim2.new(0,15,0,168)
+listFrame.Size = UDim2.new(1,-30,1,-220)
+listFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+listFrame.BorderSizePixel = 0
+Instance.new("UICorner", listFrame)
+
+local scroll = Instance.new("ScrollingFrame", listFrame)
+scroll.Size = UDim2.new(1,-10,1,-10)
+scroll.Position = UDim2.new(0,5,0,5)
+scroll.CanvasSize = UDim2.new(0,0,0,0)
+scroll.ScrollBarImageTransparency = 0.3
+scroll.BackgroundTransparency = 1
+
+local layout = Instance.new("UIListLayout", scroll)
+layout.Padding = UDim.new(0,6)
+
+--------------------------------------------------
+-- REFRESH
+--------------------------------------------------
+local refresh = Instance.new("TextButton", main)
+refresh.Size = UDim2.new(1,-30,0,28)
+refresh.Position = UDim2.new(0,15,1,-38)
+refresh.Text = "🔁 Refresh Players"
+refresh.Font = Enum.Font.GothamBold
+refresh.TextSize = 12
+refresh.TextColor3 = Color3.fromRGB(200,200,200)
+refresh.BackgroundColor3 = Color3.fromRGB(35,35,35)
+refresh.BorderSizePixel = 0
+Instance.new("UICorner", refresh)
+
+--------------------------------------------------
+-- BUILD LIST
+--------------------------------------------------
+local function rebuildList()
+	for _,v in ipairs(scroll:GetChildren()) do
+		if v:IsA("TextButton") then v:Destroy() end
+	end
+
+	for _,plr in ipairs(Players:GetPlayers()) do
+		if plr ~= player then
+			local b = Instance.new("TextButton", scroll)
+			b.Size = UDim2.new(1,-4,0,30)
+			b.Text = plr.Name
+			b.Font = Enum.Font.GothamBold
+			b.TextSize = 13
+			b.TextColor3 = Color3.new(1,1,1)
+			b.BorderSizePixel = 0
+			b.BackgroundColor3 = (modeAll or selected[plr]) and Color3.fromRGB(40,80,60) or Color3.fromRGB(35,35,35)
+			Instance.new("UICorner", b)
+
+			b.MouseButton1Click:Connect(function()
+				if modeAll then return end
+				selected[plr] = not selected[plr]
+				rebuildList()
+			end)
+		end
+	end
+	task.wait()
+	scroll.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 6)
+end
+
+--------------------------------------------------
+-- SPEED BUTTON LOGIC
+--------------------------------------------------
+speedMinus.MouseButton1Click:Connect(function()
+	spinSpeed = math.max(0.5, spinSpeed - 0.5)
+	speedText.Text = "Speed: "..spinSpeed
+end)
+
+speedPlus.MouseButton1Click:Connect(function()
+	spinSpeed = math.min(10, spinSpeed + 0.5)
+	speedText.Text = "Speed: "..spinSpeed
+end)
+
+--------------------------------------------------
+-- MODE SWITCH
+--------------------------------------------------
+singleBtn.MouseButton1Click:Connect(function()
+	modeAll = false
+	selected = {}
+	singleBtn.BackgroundColor3 = Color3.fromRGB(35,65,50)
+	allBtn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+	rebuildList()
+end)
+
+allBtn.MouseButton1Click:Connect(function()
+	modeAll = true
+	selected = {}
+	allBtn.BackgroundColor3 = Color3.fromRGB(35,65,50)
+	singleBtn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+	rebuildList()
+end)
+
+refresh.MouseButton1Click:Connect(rebuildList)
+Players.PlayerAdded:Connect(function() task.wait(1); rebuildList() end)
+Players.PlayerRemoving:Connect(rebuildList)
+
+--------------------------------------------------
+-- TOGGLE SPIN
+--------------------------------------------------
+toggle.MouseButton1Click:Connect(function()
+	enabled = not enabled
+	toggle.Text = enabled and "ON" or "OFF"
+
+	if enabled then
+		connection = RunService.Heartbeat:Connect(function(dt)
+			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			if not root then return end
+
+			angle += dt * spinSpeed
+			local radius = 5
+			local index = 0
+
+			for _,plr in ipairs(Players:GetPlayers()) do
+				if plr ~= player and (modeAll or selected[plr]) then
+					local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+					if hrp then
+						index += 1
+						local a = angle + index * math.pi * 2 / 8
+						hrp.CFrame = root.CFrame * CFrame.new(
+							math.cos(a)*radius,
+							0,
+							math.sin(a)*radius
+						)
+					end
+				end
+			end
+		end)
+	else
+		if connection then connection:Disconnect() end
+	end
+end)
+
+--------------------------------------------------
+-- INIT
+--------------------------------------------------
+rebuildList()
