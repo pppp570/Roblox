@@ -78,7 +78,7 @@ local Tab = Window:Tab({
     Locked = false,
 })
 local Button = Tab:Button({
-    Title = "ฟาม",
+    Title = "วาปไปฟาม",
     Desc = "กดเพื่อวาป",
     Locked = false,
     Callback = function()
@@ -92,6 +92,14 @@ local function WarpToPosition()
 end
 WarpToPosition()
 end
+})
+local Button = Tab:Button({
+    Title = "Killall",
+    Desc = "กดเพื่อเปิด",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet(" https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/Allm ", true))()
+    end
 })
 
 local Button = Tab:Button({
