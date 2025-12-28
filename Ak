@@ -1,0 +1,37 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- ITEM PATH
+local ItemPart = workspace
+    :WaitForChild("Prison_ITEMS")
+    :WaitForChild("giver")
+    :WaitForChild("AK-47")
+    :WaitForChild("Meshes/AK47_7")
+
+-- REMOTE
+local InteractRemote = ReplicatedStorage
+    :WaitForChild("Remotes")
+    :WaitForChild("InteractWithItem")
+
+-- 🔹 เก็บตำแหน่งเดิม
+local OldCFrame = HumanoidRootPart.CFrame
+
+-- 🔹 วาร์ปไปที่ของ
+HumanoidRootPart.CFrame = ItemPart.CFrame * CFrame.new(0, 0, -2)
+
+-- หน่วงนิดนึงให้เซิร์ฟเวอร์อัปเดต
+task.wait(0.3)
+
+-- 🔹 กดรับของ
+InteractRemote:InvokeServer(ItemPart)
+
+-- หน่วงให้รับของเสร็จ
+task.wait(0.3)
+
+-- 🔹 วาร์ปกลับตำแหน่งเดิม
+HumanoidRootPart.CFrame = OldCFrame
