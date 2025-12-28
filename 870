@@ -1,0 +1,44 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- ฟังก์ชันหา Item
+local function getItem(itemName, meshName)
+    return workspace
+        :WaitForChild("Prison_ITEMS")
+        :WaitForChild("giver")
+        :WaitForChild(itemName)
+        :WaitForChild("Meshes/"..meshName)
+end
+
+-- ฟังก์ชันวาร์ปไปกดของแล้วกลับ
+local function GrabItemAndReturn(itemName, meshName)
+    local itemPart = getItem(itemName, meshName)
+    if not itemPart then return end
+
+    -- เก็บตำแหน่งเดิมก่อนวาร์ป
+    local originalCFrame = HumanoidRootPart.CFrame
+
+    -- วาร์ปไปที่ของ
+    HumanoidRootPart.CFrame = itemPart.CFrame
+    task.wait(0.2) -- ให้เซิร์ฟเวอร์อัปเดต
+
+    -- กดรับของ
+    local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("InteractWithItem")
+    remote:InvokeServer(itemPart)
+
+    task.wait(0.2) -- รอให้เซิร์ฟเวอร์รับของเรียบร้อย
+
+    -- วาร์ปกลับตำแหน่งเดิม
+    HumanoidRootPart.CFrame = originalCFrame
+end
+
+-- ตัวอย่างเรียกใช้ Remington 870
+GrabItemAndReturn("Remington 870", "r870_2")
+
+-- ตัวอย่างเรียกใช้ AK-47
+-- GrabItemAndReturn("AK-47", "AK47_7")
