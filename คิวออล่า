@@ -10,7 +10,7 @@ local LocalPlayer = Players.LocalPlayer
 -- RemoteEvent
 local REMOTE = ReplicatedStorage:WaitForChild("meleeEvent")
 local RANGE = 10 -- ระยะตรวจสอบผู้เล่นใกล้
-local Enabled = true -- ทำงานทันที
+local Enabled = false -- ทำงานทันที
 
 --==================================================
 -- ตัวละครและ RootPart
