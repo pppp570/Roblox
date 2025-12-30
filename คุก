@@ -17,6 +17,7 @@ local WindUI = loadstring(game:HttpGet(
 local Window = WindUI:CreateWindow({
     Title = "So hub",
     Author = "Happy New Year",
+    Icon = "https://cdn.discordapp.com/attachments/1379297032568569909/1455275853742346514/109_20251220214919-removebg-preview_1.png?ex=695422c1&is=6952d141&hm=5734945c42ebbf5e949be3a7ceb8af8ceabf36d10d3fc824f1cb1b35de05ff85&", -- lucide icon. optional
     Folder = "SilentAimESP"
 })
 
@@ -323,9 +324,13 @@ local Tab = Window:Tab({
     Icon = "person-standing", -- optional
     Locked = false,
 })
+local Section = Tab:Section({ 
+    Title = "Player",
+})
+Tab:Divider()
 local Toggle = Tab:Toggle({
 Title = "Infinity Jump",
-Desc = "On/off",
+
 Default = true, -- เริ่มต้นเปิด
 Callback = function(state)
 if state then
@@ -348,14 +353,6 @@ _G.InfiniteJumpEnabled = false
 end
 end
 })
-local Button = Tab:Button({
-    Title = "gun rgb",
-    Desc = "On/off",
-    Locked = false,
-    Callback = function()
-       loadstring(game:HttpGet(" https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/Rgb ", true))()
-    end
-})
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -375,6 +372,146 @@ local Slider = Tab:Slider({
             LocalPlayer.Character.Humanoid.WalkSpeed = value
         end
         print("WalkSpeed ปัจจุบัน:", value)
+    end
+})
+local Section = Tab:Section({ 
+    Title = "gun",
+})
+Tab:Divider()
+-- สร้าง Toggle
+local Toggle = Tab:Toggle({
+    Title = " God gun",
+    Default = true, -- เริ่มต้นเปิด
+    Callback = function(state)
+        if state then
+            print("สวิตช์เปิดอยู่")
+          local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local FIRE_RATE = 0.001
+local function patchTool(tool)
+    if not tool:IsA("Tool") then return end
+    pcall(function()
+        tool:SetAttribute("FireRate", FIRE_RATE)
+        tool:SetAttribute("AutoFire", true)
+    end)
+    for _,v in ipairs(tool:GetDescendants()) do
+        if v:IsA("NumberValue") and v.Name:lower():find("fire") then
+            v.Value = FIRE_RATE
+        end
+        if v:IsA("BoolValue") and v.Name:lower():find("auto") then
+            v.Value = true
+        end
+    end
+    for _,v in ipairs(tool:GetDescendants()) do
+        if v:IsA("ModuleScript") then
+            local ok, data = pcall(require, v)
+            if ok and typeof(data) == "table" then
+                if data.FireRate then
+                    data.FireRate = FIRE_RATE
+                end
+                if data.AutoFire ~= nil then
+                    data.AutoFire = true
+                end
+            end
+        end
+    end
+end
+local function onCharacter(char)
+    for _,v in ipairs(char:GetChildren()) do
+        patchTool(v)
+    end
+    char.ChildAdded:Connect(patchTool)
+end
+if player.Character then
+    onCharacter(player.Character)
+end
+player.CharacterAdded:Connect(onCharacter)
+player.Backpack.ChildAdded:Connect(patchTool)
+        else
+            print("สวิตช์ถูกปิด")
+local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+if tool then
+    tool:SetAttribute("FireRate", nil)   -- ลบค่าที่ตั้งไว้
+    tool:SetAttribute("AutoFire", false) -- ปิด AutoFire
+end
+        end
+    end
+})
+-- สร้าง Toggle
+local Toggle = Tab:Toggle({
+    Title = "Ammo inf",
+    Default = true, -- เริ่มต้นเปิด
+    Callback = function(state)
+        if state then
+            print("สวิตช์เปิดอยู่")
+local player = game.Players.LocalPlayer local character = player.Character or player.CharacterAdded:Wait()  local tool = character:FindFirstChildOfClass("Tool") if tool then     tool:SetAttribute("MaxAmmo", math.huge) end
+        else
+            print("สวิตช์ถูกปิด")
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local tool = character:FindFirstChildOfClass("Tool")
+if tool then
+    -- ถ้ายังไม่เคยเก็บค่าเดิม
+    if not tool:GetAttribute("OriginalMaxAmmo") then
+        tool:SetAttribute("OriginalMaxAmmo", tool:GetAttribute("MaxAmmo"))
+    end
+
+    -- คืนค่าเดิม
+    local original = tool:GetAttribute("OriginalMaxAmmo")
+    if original ~= nil then
+        tool:SetAttribute("MaxAmmo", original)
+    end
+end
+        end
+    end
+})
+local Button = Tab:Button({
+    Title = "Key card",
+    Locked = false,
+    Callback = function()
+        -- SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+
+-- ฟังก์ชันเสก Key Card
+local function giveKeyCard()
+    local toolsFolder = ReplicatedStorage:FindFirstChild("Tools")
+    if toolsFolder then
+        local keyCard = toolsFolder:FindFirstChild("Key card")
+        if keyCard then
+            local clonedCard = keyCard:Clone()
+            clonedCard.Parent = backpack
+            print("เสก Key card สำเร็จ!")
+        else
+            warn("ไม่พบ Key card")
+        end
+    else
+        warn("ไม่พบ Tools Folder ใน ReplicatedStorage")
+    end
+end
+
+-- เรียกใช้งานฟังก์ชันทันที
+giveKeyCard()
+    end
+})
+local Button = Tab:Button({
+    Title = "kilall",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet(" https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/Killall ", true))()
+    end
+})
+-- ปิดสวิตช์จากโค้ด
+Toggle:Set(false) -- false = ปิด, true = เปิด
+local Button = Tab:Button({
+    Title = "gun rgb",
+    Locked = false,
+    Callback = function()
+       loadstring(game:HttpGet(" https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/Rgb ", true))()
     end
 })
 local ESPEnabled = false
@@ -724,8 +861,7 @@ ESPTab:Toggle({
             end
         end
     end
-})
-local Tab = Window:Tab({
+})local Tab = Window:Tab({
     Title = "Teleport ",
     Icon = "map-pinned", -- optional
     Locked = false,
