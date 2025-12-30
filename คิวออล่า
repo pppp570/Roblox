@@ -2,7 +2,7 @@
 -- SERVICES
 --==================================================
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+locaMeleeReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
@@ -13,7 +13,7 @@ local RootPart = Character:WaitForChild("HumanoidRootPart")
 
 local REMOTE = ReplicatedStorage:WaitForChild("meleeEvent")
 local RANGE = 10 -- ระยะตรวจสอบผู้เล่นใกล้
-local Enabled = true -- GUI ปิด/เปิด
+local Enabled = false -- GUI ปิด/เปิด
 
 --==================================================
 -- GUI ปุ่มเปิด/ปิด
@@ -22,7 +22,7 @@ local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"
 local ToggleButton = Instance.new("TextButton")
 ToggleButton.Size = UDim2.new(0, 120, 0, 50)
 ToggleButton.Position = UDim2.new(0, 10, 0, 10)
-ToggleButton.Text = "Melee: ON"
+ToggleButton.Text = "killora: ON"
 ToggleButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
 ToggleButton.TextColor3 = Color3.fromRGB(255,255,255)
 ToggleButton.Parent = ScreenGui
