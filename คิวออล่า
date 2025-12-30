@@ -9,8 +9,8 @@ local LocalPlayer = Players.LocalPlayer
 
 -- RemoteEvent
 local REMOTE = ReplicatedStorage:WaitForChild("meleeEvent")
-local RANGE = 10 -- ระยะตรวจสอบผู้เล่นใกล้
-local Enabled = false -- เริ่มต้นปิด ต้องเปิดเอง
+local RANGE = 10
+local Enabled = false -- เริ่มปิด ต้องเปิดเอง
 
 --==================================================
 -- ตัวละครและ RootPart
@@ -31,10 +31,13 @@ local function GetNearbyPlayers()
     local nearby = {}
     if not RootPart then return nearby end
     for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local distance = (player.Character.HumanoidRootPart.Position - RootPart.Position).Magnitude
-            if distance <= RANGE then
-                table.insert(nearby, player)
+        if player ~= LocalPlayer and player.Character then
+            local targetRoot = player.Character:FindFirstChild("HumanoidRootPart")
+            if targetRoot then
+                local distance = (targetRoot.Position - RootPart.Position).Magnitude
+                if distance <= RANGE then
+                    table.insert(nearby, targetRoot) -- เก็บ RootPart ของผู้เล่นแทน Player
+                end
             end
         end
     end
@@ -53,16 +56,14 @@ end
 -- Loop หลัก
 --==================================================
 RunService.Heartbeat:Connect(function()
-    -- ตรวจสอบ Enabled ก่อนเลย
     if not Enabled then return end
-
-    -- ตรวจสอบ RootPart พร้อม
-    if not RootPart or not RootPart.Parent then return end
+    if not RootPart then return end
 
     local targets = GetNearbyPlayers()
-    for _, target in pairs(targets) do
+    for _, targetRoot in pairs(targets) do
         local success, err = pcall(function()
-            REMOTE:FireServer(target)
+            -- FireServer ไปที่ RootPart ของผู้เล่นใกล้
+            REMOTE:FireServer(targetRoot)
         end)
         if not success then
             warn("Error firing meleeEvent:", err)
@@ -70,7 +71,6 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
---[[ ตัวอย่าง:
-เรียก ToggleMelee() เพื่อเปิดระบบ
-ToggleMelee()  --> จะเริ่มทำงานตอนนี้
+--[[ ตัวอย่างเรียกเปิด:
+ToggleMelee()  --> สคริปต์เริ่มทำงาน
 ]]--
