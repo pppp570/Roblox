@@ -1,0 +1,26 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+
+-- ฟังก์ชันเสก Key Card
+local function giveKeyCard()
+    local toolsFolder = ReplicatedStorage:FindFirstChild("Tools")
+    if toolsFolder then
+        local keyCard = toolsFolder:FindFirstChild("Key card")
+        if keyCard then
+            local clonedCard = keyCard:Clone()
+            clonedCard.Parent = backpack
+            print("เสก Key card สำเร็จ!")
+        else
+            warn("ไม่พบ Key card")
+        end
+    else
+        warn("ไม่พบ Tools Folder ใน ReplicatedStorage")
+    end
+end
+
+-- เรียกใช้งานฟังก์ชันทันที
+giveKeyCard()
