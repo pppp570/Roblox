@@ -1,0 +1,28 @@
+local loopConnection
+loopConnection = RunService.Heartbeat:Connect(function()
+    if not Enabled then return end
+
+    local targets = GetNearbyPlayers()
+    for _, target in pairs(targets) do
+        local success, err = pcall(function()
+            REMOTE:FireServer(target)
+        end)
+        if not success then
+            warn("Error firing meleeEvent:", err)
+        end
+    end
+end)
+
+-- ฟังก์ชันหยุดสคริปต์ 100%
+local function StopScript()
+    Enabled = false
+    if loopConnection then
+        loopConnection:Disconnect()
+        loopConnection = nil
+    end
+    print("Melee script fully stopped")
+end
+
+-- เรียก StopScript() เพื่อหยุด
+-- ตัวอย่าง:
+StopScript()
