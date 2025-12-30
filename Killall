@@ -1,0 +1,240 @@
+--------------------------------------------------
+-- SERVICES
+--------------------------------------------------
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+local REMOTE = ReplicatedStorage:WaitForChild("meleeEvent")
+
+--------------------------------------------------
+-- VARIABLES
+--------------------------------------------------
+local enabled = false
+local connection
+local angle = 0
+local others = {}
+
+local RANGE = 10 -- ระยะตรวจสอบผู้เล่นใกล้
+local meleeEnabled = false
+local meleeConnection
+
+--------------------------------------------------
+-- FUNCTIONS
+--------------------------------------------------
+-- GUI Functions
+local function setTransparency(plr, value)
+	if plr.Character then
+		for _,v in ipairs(plr.Character:GetDescendants()) do
+			if v:IsA("BasePart") then
+				v.LocalTransparencyModifier = value
+			end
+		end
+	end
+end
+
+local function resetAll()
+	for _,plr in ipairs(Players:GetPlayers()) do
+		setTransparency(plr, 0)
+	end
+end
+
+local function refreshOthers()
+	others = {}
+	for _,plr in ipairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer
+		and plr.Character
+		and plr.Character:FindFirstChild("HumanoidRootPart") then
+			table.insert(others, plr)
+		end
+	end
+end
+
+-- Melee Functions
+local function GetNearbyPlayers()
+    local nearby = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (player.Character.HumanoidRootPart.Position - RootPart.Position).Magnitude
+            if distance <= RANGE then
+                table.insert(nearby, player)
+            end
+        end
+    end
+    return nearby
+end
+
+local function startMeleeLoop()
+    if meleeConnection then return end
+    meleeEnabled = true
+    meleeConnection = RunService.Heartbeat:Connect(function()
+        if not meleeEnabled then return end
+        local targets = GetNearbyPlayers()
+        for _, target in pairs(targets) do
+            local success, err = pcall(function()
+                REMOTE:FireServer(target)
+            end)
+            if not success then
+                warn("Error firing meleeEvent:", err)
+            end
+        end
+    end)
+end
+
+local function stopMeleeLoop()
+    meleeEnabled = false
+    if meleeConnection then
+        meleeConnection:Disconnect()
+        meleeConnection = nil
+    end
+end
+
+--------------------------------------------------
+-- GUI
+--------------------------------------------------
+local gui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+gui.ResetOnSpawn = false
+gui.Name = "LoudSpinGui"
+
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0,220,0,90)
+main.Position = UDim2.new(0,30,0,220)
+main.BackgroundColor3 = Color3.fromRGB(18,18,18)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,16)
+
+local shadow = Instance.new("ImageLabel", main)
+shadow.AnchorPoint = Vector2.new(0.5,0.5)
+shadow.Position = UDim2.new(0.5,0,0.5,6)
+shadow.Size = UDim2.new(1,30,1,30)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageTransparency = 0.5
+shadow.ZIndex = 0
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,0,0,35)
+title.BackgroundTransparency = 1
+title.Text = "killall"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.TextColor3 = Color3.fromRGB(255,255,255)
+
+local btn = Instance.new("TextButton", main)
+btn.Size = UDim2.new(1,-30,0,38)
+btn.Position = UDim2.new(0,15,0,42)
+btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+btn.Text = "OFF"
+btn.TextColor3 = Color3.fromRGB(255,90,90)
+btn.Font = Enum.Font.GothamBold
+btn.TextSize = 15
+btn.BorderSizePixel = 0
+Instance.new("UICorner", btn).CornerRadius = UDim.new(0,12)
+
+local stroke = Instance.new("UIStroke", btn)
+stroke.Thickness = 2
+stroke.Color = Color3.fromRGB(255,90,90)
+
+-- Sounds
+local soundOn = Instance.new("Sound", gui)
+soundOn.SoundId = "rbxassetid://9118826048"
+soundOn.Volume = 1.6
+soundOn.PlaybackSpeed = 1
+
+local soundOnLayer = Instance.new("Sound", gui)
+soundOnLayer.SoundId = "rbxassetid://12222216"
+soundOnLayer.Volume = 0.9
+soundOnLayer.PlaybackSpeed = 1.1
+
+local soundOff = Instance.new("Sound", gui)
+soundOff.SoundId = "rbxassetid://9118823105"
+soundOff.Volume = 1.3
+soundOff.PlaybackSpeed = 0.95
+
+local function setON()
+	btn.Text = "ON"
+	btn.TextColor3 = Color3.fromRGB(120,255,170)
+	soundOn:Play()
+	soundOnLayer:Play()
+	TweenService:Create(btn, TweenInfo.new(0.25), { BackgroundColor3 = Color3.fromRGB(30,65,45) }):Play()
+	TweenService:Create(stroke, TweenInfo.new(0.25), { Color = Color3.fromRGB(120,255,170) }):Play()
+end
+
+local function setOFF()
+	btn.Text = "OFF"
+	btn.TextColor3 = Color3.fromRGB(255,90,90)
+	soundOff:Play()
+	TweenService:Create(btn, TweenInfo.new(0.25), { BackgroundColor3 = Color3.fromRGB(40,40,40) }):Play()
+	TweenService:Create(stroke, TweenInfo.new(0.25), { Color = Color3.fromRGB(255,90,90) }):Play()
+end
+
+--------------------------------------------------
+-- PLAYER UPDATE
+--------------------------------------------------
+Players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function()
+		task.wait(1)
+		if enabled then
+			refreshOthers()
+		end
+	end)
+end)
+
+Players.PlayerRemoving:Connect(function()
+	refreshOthers()
+end)
+
+--------------------------------------------------
+-- TOGGLE BUTTON
+--------------------------------------------------
+btn.MouseButton1Click:Connect(function()
+	enabled = not enabled
+
+	if enabled then
+		setON()
+		refreshOthers()
+		startMeleeLoop() -- เปิด meleeEvent
+
+		connection = RunService.Heartbeat:Connect(function(dt)
+			local char = LocalPlayer.Character
+			local root = char and char:FindFirstChild("HumanoidRootPart")
+			if not root then return end
+
+			angle += dt * 9
+			local radius = 4
+
+			for i,plr in ipairs(others) do
+				local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+				if hrp then
+					local a = angle + (i / #others) * math.pi * 2
+					hrp.CFrame = root.CFrame * CFrame.new(
+						math.cos(a) * radius,
+						0,
+						math.sin(a) * radius
+					)
+					setTransparency(plr, 0)
+				end
+			end
+
+			for _,plr in ipairs(Players:GetPlayers()) do
+				if plr ~= LocalPlayer and not table.find(others, plr) then
+					setTransparency(plr, 1)
+				end
+			end
+		end)
+	else
+		setOFF()
+		if connection then
+			connection:Disconnect()
+			connection = nil
+		end
+		stopMeleeLoop() -- ปิด meleeEvent
+		resetAll()
+	end
+end)
