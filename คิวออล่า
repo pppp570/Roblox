@@ -1,32 +1,20 @@
---==================================================
--- SERVICES
---==================================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
-
--- RemoteEvent
 local REMOTE = ReplicatedStorage:WaitForChild("meleeEvent")
-local RANGE = 10
+local RANGE = 20 -- เพิ่มระยะให้เจอผู้เล่นง่ายขึ้น
 local Enabled = false -- เริ่มปิด ต้องเปิดเอง
 
---==================================================
--- ตัวละครและ RootPart
---==================================================
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local RootPart = Character:FindFirstChild("HumanoidRootPart")
 
--- อัปเดต RootPart ถ้า Character เปลี่ยน
 LocalPlayer.CharacterAdded:Connect(function(char)
     Character = char
     RootPart = char:WaitForChild("HumanoidRootPart")
 end)
 
---==================================================
--- ฟังก์ชันตรวจสอบผู้เล่นใกล้
---==================================================
 local function GetNearbyPlayers()
     local nearby = {}
     if not RootPart then return nearby end
@@ -36,7 +24,7 @@ local function GetNearbyPlayers()
             if targetRoot then
                 local distance = (targetRoot.Position - RootPart.Position).Magnitude
                 if distance <= RANGE then
-                    table.insert(nearby, targetRoot) -- เก็บ RootPart ของผู้เล่นแทน Player
+                    table.insert(nearby, player) -- เก็บ Player object
                 end
             end
         end
@@ -44,26 +32,24 @@ local function GetNearbyPlayers()
     return nearby
 end
 
---==================================================
--- ฟังก์ชันเปิด/ปิด
---==================================================
 local function ToggleMelee()
     Enabled = not Enabled
     print("Melee:", Enabled and "ON" or "OFF")
 end
 
---==================================================
--- Loop หลัก
---==================================================
 RunService.Heartbeat:Connect(function()
     if not Enabled then return end
     if not RootPart then return end
 
     local targets = GetNearbyPlayers()
-    for _, targetRoot in pairs(targets) do
+    if #targets == 0 then return end
+
+    for _, target in pairs(targets) do
         local success, err = pcall(function()
-            -- FireServer ไปที่ RootPart ของผู้เล่นใกล้
-            REMOTE:FireServer(targetRoot)
+            -- DEBUG: ดูว่าเราเจอใคร
+            print("Firing meleeEvent to:", target.Name)
+            -- อาจต้องปรับ args ตามเกมจริง เช่น Tool หรือ Player.Name
+            REMOTE:FireServer(target) 
         end)
         if not success then
             warn("Error firing meleeEvent:", err)
@@ -71,6 +57,5 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
---[[ ตัวอย่างเรียกเปิด:
-ToggleMelee()  --> สคริปต์เริ่มทำงาน
-]]--
+-- ตัวอย่างเรียกเปิด
+-- ToggleMelee()
