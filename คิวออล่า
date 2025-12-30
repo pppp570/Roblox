@@ -10,13 +10,13 @@ local LocalPlayer = Players.LocalPlayer
 -- RemoteEvent
 local REMOTE = ReplicatedStorage:WaitForChild("meleeEvent")
 local RANGE = 10 -- ระยะตรวจสอบผู้เล่นใกล้
-local Enabled = false -- ทำงานทันที
+local Enabled = false -- เริ่มต้นปิด ต้องเปิดเอง
 
 --==================================================
 -- ตัวละครและ RootPart
 --==================================================
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local RootPart = Character:WaitForChild("HumanoidRootPart")
+local RootPart = Character:FindFirstChild("HumanoidRootPart")
 
 -- อัปเดต RootPart ถ้า Character เปลี่ยน
 LocalPlayer.CharacterAdded:Connect(function(char)
@@ -42,16 +42,26 @@ local function GetNearbyPlayers()
 end
 
 --==================================================
+-- ฟังก์ชันเปิด/ปิด
+--==================================================
+local function ToggleMelee()
+    Enabled = not Enabled
+    print("Melee:", Enabled and "ON" or "OFF")
+end
+
+--==================================================
 -- Loop หลัก
 --==================================================
 RunService.Heartbeat:Connect(function()
+    -- ตรวจสอบ Enabled ก่อนเลย
     if not Enabled then return end
-    if not RootPart then return end
+
+    -- ตรวจสอบ RootPart พร้อม
+    if not RootPart or not RootPart.Parent then return end
 
     local targets = GetNearbyPlayers()
     for _, target in pairs(targets) do
         local success, err = pcall(function()
-            -- ถ้า RemoteEvent ต้องการ Tool หรือชื่อผู้เล่น ให้เปลี่ยน target ที่นี่
             REMOTE:FireServer(target)
         end)
         if not success then
@@ -59,3 +69,8 @@ RunService.Heartbeat:Connect(function()
         end
     end
 end)
+
+--[[ ตัวอย่าง:
+เรียก ToggleMelee() เพื่อเปิดระบบ
+ToggleMelee()  --> จะเริ่มทำงานตอนนี้
+]]--
