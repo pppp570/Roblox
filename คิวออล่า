@@ -13,24 +13,7 @@ local RootPart = Character:WaitForChild("HumanoidRootPart")
 
 local REMOTE = ReplicatedStorage:WaitForChild("meleeEvent")
 local RANGE = 10 -- ระยะตรวจสอบผู้เล่นใกล้
-local Enabled = true -- GUI ปิด/เปิด
-
---==================================================
--- GUI ปุ่มเปิด/ปิด
---==================================================
-local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 120, 0, 50)
-ToggleButton.Position = UDim2.new(0, 10, 0, 10)
-ToggleButton.Text = "Melee: ON"
-ToggleButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
-ToggleButton.TextColor3 = Color3.fromRGB(255,255,255)
-ToggleButton.Parent = ScreenGui
-
-ToggleButton.MouseButton1Click:Connect(function()
-    Enabled = not Enabled
-    ToggleButton.Text = Enabled and "Melee: ON" or "Melee: OFF"
-end)
+local Enabled = true -- ถ้าต้องการปิด/เปิด สามารถเปลี่ยนตรงนี้
 
 --==================================================
 -- ฟังก์ชันตรวจสอบผู้เล่นใกล้
@@ -56,8 +39,6 @@ RunService.Heartbeat:Connect(function()
 
     local targets = GetNearbyPlayers()
     for _, target in pairs(targets) do
-        -- ตรวจสอบว่าตัว RemoteEvent ต้องการ Player หรือ Tool/Other
-        -- ปรับ args ตามที่ RemoteEvent ต้องการ
         local success, err = pcall(function()
             REMOTE:FireServer(target)
         end)
