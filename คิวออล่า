@@ -9,8 +9,8 @@ local LocalPlayer = Players.LocalPlayer
 
 -- RemoteEvent
 local REMOTE = ReplicatedStorage:WaitForChild("meleeEvent")
-local RANGE = 10 -- ระยะตรวจสอบผู้เล่นใกล้
-local Enabled = false -- เริ่มต้นปิด ต้องเปิดเอง
+local RANGE = 5 -- ระยะตรวจสอบผู้เล่นใกล้
+local Enabled = true -- ทำงานทันที
 
 --==================================================
 -- ตัวละครและ RootPart
@@ -42,17 +42,6 @@ local function GetNearbyPlayers()
 end
 
 --==================================================
--- ฟังก์ชันเปิด/ปิด
---==================================================
-local function ToggleMelee()
-    Enabled = not Enabled
-    print("Melee:", Enabled and "ON" or "OFF")
-end
-
--- ตัวอย่างเรียกเปิดด้วยโค้ด
--- ToggleMelee() -- ถ้าเรียกฟังก์ชันนี้ มันจะเริ่มทำงาน
-
---==================================================
 -- Loop หลัก
 --==================================================
 RunService.Heartbeat:Connect(function()
@@ -62,10 +51,11 @@ RunService.Heartbeat:Connect(function()
     local targets = GetNearbyPlayers()
     for _, target in pairs(targets) do
         local success, err = pcall(function()
+            -- ถ้า RemoteEvent ต้องการ Tool หรือชื่อผู้เล่น ให้เปลี่ยน target ที่นี่
             REMOTE:FireServer(target)
         end)
         if not success then
             warn("Error firing meleeEvent:", err)
         end
     end
-end)lee()elee()
+end)
