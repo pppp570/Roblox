@@ -1,0 +1,68 @@
+--==================================================
+-- SERVICES
+--==================================================
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- รอให้ Character โหลด
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+
+local REMOTE = ReplicatedStorage:WaitForChild("meleeEvent")
+local RANGE = 10 -- ระยะตรวจสอบผู้เล่นใกล้
+local Enabled = true -- GUI ปิด/เปิด
+
+--==================================================
+-- GUI ปุ่มเปิด/ปิด
+--==================================================
+local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 120, 0, 50)
+ToggleButton.Position = UDim2.new(0, 10, 0, 10)
+ToggleButton.Text = "Melee: ON"
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
+ToggleButton.TextColor3 = Color3.fromRGB(255,255,255)
+ToggleButton.Parent = ScreenGui
+
+ToggleButton.MouseButton1Click:Connect(function()
+    Enabled = not Enabled
+    ToggleButton.Text = Enabled and "Melee: ON" or "Melee: OFF"
+end)
+
+--==================================================
+-- ฟังก์ชันตรวจสอบผู้เล่นใกล้
+--==================================================
+local function GetNearbyPlayers()
+    local nearby = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (player.Character.HumanoidRootPart.Position - RootPart.Position).Magnitude
+            if distance <= RANGE then
+                table.insert(nearby, player)
+            end
+        end
+    end
+    return nearby
+end
+
+--==================================================
+-- Loop หลัก
+--==================================================
+RunService.Heartbeat:Connect(function()
+    if not Enabled then return end
+
+    local targets = GetNearbyPlayers()
+    for _, target in pairs(targets) do
+        -- ตรวจสอบว่าตัว RemoteEvent ต้องการ Player หรือ Tool/Other
+        -- ปรับ args ตามที่ RemoteEvent ต้องการ
+        local success, err = pcall(function()
+            REMOTE:FireServer(target)
+        end)
+        if not success then
+            warn("Error firing meleeEvent:", err)
+        end
+    end
+end)
