@@ -7,11 +7,8 @@ local LocalPlayer = Players.LocalPlayer
 local ArrestRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("ArrestPlayer")
 
 -- SETTINGS
-local AutoArrestEnabled = false -- << เริ่มต้นปิด
 local ArrestRange = 20 -- ระยะจับ (studs)
-
--- LOOP CONNECTION VARIABLE
-local connection
+local connection -- ตัวเก็บ loop
 
 -- FUNCTION: Arrest nearby players
 local function AutoArrest()
@@ -27,37 +24,32 @@ local function AutoArrest()
     end
 end
 
--- START LOOP (แต่ไม่ทำอะไรถ้า AutoArrestEnabled = false)
-connection = RunService.RenderStepped:Connect(function()
-    if AutoArrestEnabled then
+-- FUNCTION: เปิด AutoArrest
+local function StartAutoArrest()
+    if connection then return end -- ป้องกันสร้าง loop ซ้ำ
+    connection = RunService.RenderStepped:Connect(function()
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             AutoArrest()
         end
-    end
-end)
-
--- FUNCTION: เปิด AutoArrest
-local function StartAutoArrest()
-    AutoArrestEnabled = true
+    end)
 end
 
 -- FUNCTION: ปิด AutoArrest
 local function StopAutoArrest()
-    AutoArrestEnabled = false
-end
-
--- FUNCTION: หยุดถาวร
-local function StopAutoArrestPermanently()
-    AutoArrestEnabled = false
     if connection then
         connection:Disconnect()
         connection = nil
     end
+end
+
+-- FUNCTION: หยุดถาวร
+local function StopAutoArrestPermanently()
+    StopAutoArrest()
     AutoArrest = function() end
     ArrestRemote = nil
 end
 
--- ตัวอย่างใช้งาน:
--- เริ่มจับเอง: StartAutoArrest()
+-- <<ตอนนี้ตอนรันเกมจะไม่มีอะไรทำงาน>>
+-- เริ่มจับเมื่อคุณเรียก: StartAutoArrest()
 -- หยุดชั่วคราว: StopAutoArrest()
 -- หยุดถาวร: StopAutoArrestPermanently()
