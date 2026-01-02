@@ -1,0 +1,34 @@
+--==================================================
+-- SERVICES
+--==================================================
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+
+local player = Players.LocalPlayer
+local placeId = game.PlaceId -- ดึง ID ของเกมปัจจุบัน
+
+--==================================================
+-- ฟังก์ชันรีเซิฟ
+--==================================================
+local function RejoinGame()
+    -- รีเซิฟผู้เล่นตัวเองไปที่เกมเดิม
+    TeleportService:Teleport(placeId, player)
+end
+
+--==================================================
+-- ตัวอย่างการเรียกใช้
+--==================================================
+-- รันทันที
+RejoinGame()
+
+-- หรือถ้าต้องการกดปุ่มเพื่อรีเซิฟ
+--[[
+local UserInputService = game:GetService("UserInputService")
+
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Enum.KeyCode.R then -- กด R เพื่อรีเซิฟ
+        RejoinGame()
+    end
+end)
+]]
