@@ -7,74 +7,49 @@ local player = Players.LocalPlayer
 --==================================================
 -- CONFIG
 --==================================================
-local TARGET_POS = Vector3.new(831.15, 98.04, 2089.16)
-local WAIT_TIME = 3 -- ⏱ รอกี่วินาทีก่อนปิด physics
+local targetPosition = Vector3.new(1059.96, 98.00, 2606.17) -- ตำแหน่งที่วาป
+local waitBeforeRespawn = 0.5 -- รอหลัง setfflag ก่อนรีตัว
 
 --==================================================
--- VAR
+-- ฟังก์ชันวาป
 --==================================================
-local character
-local humanoid
-local hasRun = false
-local originalCFrame
-
---==================================================
--- FUNCTIONS
---==================================================
-local function getHRP(char)
-	return char and char:FindFirstChild("HumanoidRootPart")
-end
-
-local function teleportTo(cframe)
-	local hrp = getHRP(character)
-	if hrp then
-		hrp.CFrame = cframe
-	end
-end
-
-local function disablePhysics()
-	if humanoid then
-		humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-	end
+local function teleportToPosition(position)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local root = character:WaitForChild("HumanoidRootPart")
+    root.CFrame = CFrame.new(position)
 end
 
 --==================================================
--- CHARACTER ADDED
+-- ฟังก์ชันรีตัวละคร
 --==================================================
-local function onCharacterAdded(char)
-	if hasRun then return end
-	hasRun = true
-
-	character = char
-	humanoid = char:WaitForChild("Humanoid")
-	local hrp = char:WaitForChild("HumanoidRootPart")
-
-	-- จำตำแหน่งเดิม
-	originalCFrame = hrp.CFrame
-
-	task.wait(0.2)
-
-	-- วาปไปเป้าหมาย
-	teleportTo(CFrame.new(TARGET_POS))
-
-	-- เปิด Physics
-	humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-
-	-- รอ 5 วิ
-	task.wait(WAIT_TIME)
-
-	-- ปิด Physics
-	disablePhysics()
-
-	-- วาปกลับตำแหน่งเดิม
-	task.wait(0.1)
-	if originalCFrame then
-		teleportTo(originalCFrame)
-	end
+local function respawnCharacter()
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.Health = 0 -- ทำให้รีตัว
+        end
+    end
 end
 
-player.CharacterAdded:Connect(onCharacterAdded)
+--==================================================
+-- รัน setfflag
+--==================================================
+local success, err = pcall(function()
+    setfflag("NextGenReplicatorEnabledWrite4", "false")
+    task.wait(1)
+    setfflag("NextGenReplicatorEnabledWrite4", "true")
+end)
 
-if player.Character then
-	onCharacterAdded(player.Character)
+if success then
+    print("FFlag ถูกตั้งเรียบร้อยแล้ว")
+else
+    warn("เกิดข้อผิดพลาด: "..err)
 end
+
+--==================================================
+-- วาปและรีตัวละคร
+--==================================================
+teleportToPosition(targetPosition)
+task.wait(waitBeforeRespawn)
+respawnCharacter()
