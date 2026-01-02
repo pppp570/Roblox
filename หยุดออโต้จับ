@@ -1,0 +1,47 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local ArrestRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("ArrestPlayer")
+
+-- SETTINGS
+local AutoArrestEnabled = false -- เปลี่ยนเป็น false เพื่อหยุดสคริปต์
+local ArrestRange = 20 -- ระยะจับ (studs)
+
+-- FUNCTION: Arrest nearby players
+local function AutoArrest()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if distance <= ArrestRange then
+                pcall(function()
+                    ArrestRemote:InvokeServer(player)
+                end)
+            end
+        end
+    end
+end
+
+-- LOOP
+local connection
+connection = RunService.RenderStepped:Connect(function()
+    if AutoArrestEnabled then
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            AutoArrest()
+        end
+    end
+end)
+
+-- FUNCTION: Stop Auto Arrest
+local function StopAutoArrest()
+    AutoArrestEnabled = false
+    if connection then
+        connection:Disconnect() -- ปิด loop
+        connection = nil
+    end
+end
+
+-- ตัวอย่างการหยุดสคริปต์
+-- StopAutoArrest()  -- เรียกฟังก์ชันนี้เมื่ออยากหยุด
