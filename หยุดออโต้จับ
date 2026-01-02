@@ -7,8 +7,11 @@ local LocalPlayer = Players.LocalPlayer
 local ArrestRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("ArrestPlayer")
 
 -- SETTINGS
-local AutoArrestEnabled = false -- เปลี่ยนเป็น false เพื่อหยุดสคริปต์
+local AutoArrestEnabled = true -- เปลี่ยนเป็น false เพื่อหยุดสคริปต์
 local ArrestRange = 20 -- ระยะจับ (studs)
+
+-- LOOP CONNECTION VARIABLE
+local connection
 
 -- FUNCTION: Arrest nearby players
 local function AutoArrest()
@@ -24,8 +27,7 @@ local function AutoArrest()
     end
 end
 
--- LOOP
-local connection
+-- START LOOP
 connection = RunService.RenderStepped:Connect(function()
     if AutoArrestEnabled then
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -34,14 +36,20 @@ connection = RunService.RenderStepped:Connect(function()
     end
 end)
 
--- FUNCTION: Stop Auto Arrest
-local function StopAutoArrest()
+-- FUNCTION: Stop Auto Arrest และคืนค่าเดิม
+local function RestoreDefault()
+    -- ปิด Auto Arrest
     AutoArrestEnabled = false
+
+    -- ตัดการเชื่อมต่อ Loop
     if connection then
-        connection:Disconnect() -- ปิด loop
+        connection:Disconnect()
         connection = nil
     end
+
+    -- คืนค่าอื่น ๆ (ถ้ามีค่า default เพิ่มเติม)
+    ArrestRange = 20
 end
 
--- ตัวอย่างการหยุดสคริปต์
--- StopAutoArrest()  -- เรียกฟังก์ชันนี้เมื่ออยากหยุด
+-- ตัวอย่างเรียกคืนค่าเดิม
+-- RestoreDefault()
