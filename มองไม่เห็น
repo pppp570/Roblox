@@ -1,0 +1,80 @@
+--==================================================
+-- SERVICES
+--==================================================
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+--==================================================
+-- CONFIG
+--==================================================
+local TARGET_POS = Vector3.new(831.15, 98.04, 2089.16)
+local WAIT_TIME = 3 -- ⏱ รอกี่วินาทีก่อนปิด physics
+
+--==================================================
+-- VAR
+--==================================================
+local character
+local humanoid
+local hasRun = false
+local originalCFrame
+
+--==================================================
+-- FUNCTIONS
+--==================================================
+local function getHRP(char)
+	return char and char:FindFirstChild("HumanoidRootPart")
+end
+
+local function teleportTo(cframe)
+	local hrp = getHRP(character)
+	if hrp then
+		hrp.CFrame = cframe
+	end
+end
+
+local function disablePhysics()
+	if humanoid then
+		humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+	end
+end
+
+--==================================================
+-- CHARACTER ADDED
+--==================================================
+local function onCharacterAdded(char)
+	if hasRun then return end
+	hasRun = true
+
+	character = char
+	humanoid = char:WaitForChild("Humanoid")
+	local hrp = char:WaitForChild("HumanoidRootPart")
+
+	-- จำตำแหน่งเดิม
+	originalCFrame = hrp.CFrame
+
+	task.wait(0.2)
+
+	-- วาปไปเป้าหมาย
+	teleportTo(CFrame.new(TARGET_POS))
+
+	-- เปิด Physics
+	humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+
+	-- รอ 5 วิ
+	task.wait(WAIT_TIME)
+
+	-- ปิด Physics
+	disablePhysics()
+
+	-- วาปกลับตำแหน่งเดิม
+	task.wait(0.1)
+	if originalCFrame then
+		teleportTo(originalCFrame)
+	end
+end
+
+player.CharacterAdded:Connect(onCharacterAdded)
+
+if player.Character then
+	onCharacterAdded(player.Character)
+end
