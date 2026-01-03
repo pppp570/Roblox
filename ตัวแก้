@@ -1,0 +1,92 @@
+--// SERVICES
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+--// ROOT
+local Root = workspace["\224\184\151\224\184\181\224\185\136\224\184\159\224\184\178\224\184\161"]
+local Model = Root:WaitForChild("Model")
+
+--// TARGET SETS (2,3,4)
+local TargetFolders = {
+    Model:GetChildren()[2],
+    Model:GetChildren()[3],
+    Model:GetChildren()[4]
+}
+
+--// STATE
+local Enabled = false
+local Connection
+
+--// GUI
+local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+ScreenGui.ResetOnSpawn = false
+
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.fromOffset(260,150)
+Main.Position = UDim2.fromScale(0.4,0.4)
+Main.BackgroundColor3 = Color3.fromRGB(20,20,20)
+Main.Active = true
+Main.Draggable = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0,14)
+
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1,0,0,38)
+Title.BackgroundTransparency = 1
+Title.Text = "AUTO PRESS ALL"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 17
+Title.TextColor3 = Color3.new(1,1,1)
+
+local Toggle = Instance.new("TextButton", Main)
+Toggle.Size = UDim2.fromOffset(210,60)
+Toggle.Position = UDim2.fromOffset(25,65)
+Toggle.Text = "🔴 OFF"
+Toggle.Font = Enum.Font.GothamBold
+Toggle.TextSize = 17
+Toggle.TextColor3 = Color3.new(1,1,1)
+Toggle.BackgroundColor3 = Color3.fromRGB(180,60,60)
+Instance.new("UICorner", Toggle).CornerRadius = UDim.new(0,12)
+
+--// PRESS FUNCTION
+local function PressEverything()
+    for _,folder in ipairs(TargetFolders) do
+        if folder then
+            for _,v in ipairs(folder:GetDescendants()) do
+
+                -- ClickDetector
+                if v:IsA("ClickDetector") then
+                    fireclickdetector(v)
+                end
+
+                -- ProximityPrompt
+                if v:IsA("ProximityPrompt") then
+                    fireproximityprompt(v, 1)
+                end
+
+            end
+        end
+    end
+end
+
+--// TOGGLE
+Toggle.MouseButton1Click:Connect(function()
+    Enabled = not Enabled
+
+    if Enabled then
+        Toggle.Text = "🟢 ON"
+        Toggle.BackgroundColor3 = Color3.fromRGB(60,180,90)
+
+        Connection = RunService.Heartbeat:Connect(function()
+            PressEverything()
+        end)
+    else
+        Toggle.Text = "🔴 OFF"
+        Toggle.BackgroundColor3 = Color3.fromRGB(180,60,60)
+
+        if Connection then
+            Connection:Disconnect()
+            Connection = nil
+        end
+    end
+end)
