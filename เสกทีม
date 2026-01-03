@@ -1,0 +1,129 @@
+--==================================================
+-- SERVICES
+--==================================================
+local Players = game:GetService("Players")
+local Teams = game:GetService("Teams")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+--==================================================
+-- GUI
+--==================================================
+local gui = Instance.new("ScreenGui")
+gui.Name = "TeamSelector"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 400)
+frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 16)
+corner.Parent = frame
+
+--==================================================
+-- TITLE (DRAG AREA)
+--==================================================
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 50)
+title.Text = "เลือกทีม"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 24
+title.BackgroundTransparency = 1
+title.Parent = frame
+
+--==================================================
+-- DRAG SYSTEM
+--==================================================
+local dragging = false
+local dragStart
+local startPos
+
+local function update(input)
+local delta = input.Position - dragStart
+frame.Position = UDim2.new(
+startPos.X.Scale,
+startPos.X.Offset + delta.X,
+startPos.Y.Scale,
+startPos.Y.Offset + delta.Y
+)
+end
+
+title.InputBegan:Connect(function(input)
+if input.UserInputType == Enum.UserInputType.MouseButton1
+or input.UserInputType == Enum.UserInputType.Touch then
+dragging = true
+dragStart = input.Position
+startPos = frame.Position
+
+input.Changed:Connect(function()
+if input.UserInputState == Enum.UserInputState.End then
+dragging = false
+end
+end)
+end
+
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+if dragging and (
+input.UserInputType == Enum.UserInputType.MouseMovement
+or input.UserInputType == Enum.UserInputType.Touch
+) then
+update(input)
+end
+end)
+
+--==================================================
+-- SCROLLING TEAM LIST
+--==================================================
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1, 0, 1, -60)
+scroll.Position = UDim2.new(0, 0, 0, 60)
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+scroll.ScrollBarImageTransparency = 0
+scroll.ScrollBarThickness = 6
+scroll.BackgroundTransparency = 1
+scroll.BorderSizePixel = 0
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.None
+scroll.Parent = frame
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 10)
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.Parent = scroll
+
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+end)
+
+--==================================================
+-- TEAM BUTTONS
+--==================================================
+for _, team in ipairs(Teams:GetTeams()) do
+local btn = Instance.new("TextButton")
+btn.Size = UDim2.new(0, 260, 0, 45)
+btn.Text = team.Name
+btn.Font = Enum.Font.GothamBold
+btn.TextSize = 18
+btn.TextColor3 = Color3.new(1,1,1)
+btn.BackgroundColor3 = team.TeamColor.Color
+btn.AutoButtonColor = true
+btn.Parent = scroll
+
+local c = Instance.new("UICorner")
+c.CornerRadius = UDim.new(0, 12)
+c.Parent = btn
+
+btn.MouseButton1Click:Connect(function()
+player.Team = team
+end)
+
+end
