@@ -1,0 +1,33 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- PLAYER
+local player = Players.LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+
+-- FUNCTION
+local function giveKeyCard()
+    local toolsFolder = ReplicatedStorage:FindFirstChild("Tools")
+    if not toolsFolder then
+        warn("ไม่พบ Tools Folder ใน ReplicatedStorage")
+        return
+    end
+
+    local keyCard = toolsFolder:FindFirstChild("Key card")
+    if not keyCard then
+        warn("ไม่พบ Key card")
+        return
+    end
+
+    local clonedCard = keyCard:Clone()
+    clonedCard.Parent = backpack
+    print("เสก Key card สำเร็จ!")
+end
+
+-- CHAT COMMAND
+player.Chatted:Connect(function(msg)
+    if msg:lower() == "!key" then
+        giveKeyCard()
+    end
+end)
