@@ -21,8 +21,8 @@ WindUI:AddTheme({
 
 local Window = WindUI:CreateWindow({
     Title = "So hub ",
-    Icon = "hat-glasses",
-    Author = "Free ",
+    Icon = "https://cdn.discordapp.com/attachments/1379297032568569909/1455275853742346514/109_20251220214919-removebg-preview_1.png?ex=695f5781&is=695e0601&hm=34022c77ca79d837fc8e21c41469e7f8085fdcea42745e1bae768b720165302f&",
+    Author = " Premium",
     Folder = "So hub X ",
     Size = UDim2.fromOffset(580, 460),
     MinSize = Vector2.new(560, 350),
