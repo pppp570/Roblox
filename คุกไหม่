@@ -522,6 +522,111 @@ local Button = Tab:Button({
     end
 })
 local Button = Tab:Button({
+    Title = "gun kill",
+    Locked = false,
+    Callback = function()
+        -- SERVICES
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+
+-- CONFIG
+local SWITCH_DELAY = 0.01 -- วินาที (ปรับได้)
+local Auto = false
+
+-- ================= GUI =================
+local ScreenGui = Instance.new("ScreenGui", player.PlayerGui)
+ScreenGui.ResetOnSpawn = false
+
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 260, 0, 160)
+Main.Position = UDim2.new(0.5, -130, 0.4, 0)
+Main.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Draggable = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 14)
+
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1,0,0,40)
+Title.BackgroundTransparency = 1
+Title.Text = "God gun"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.TextColor3 = Color3.new(1,1,1)
+
+local ToggleAuto = Instance.new("TextButton", Main)
+ToggleAuto.Size = UDim2.new(0.8,0,0,45)
+ToggleAuto.Position = UDim2.new(0.1,0,0.45,0)
+ToggleAuto.Text = "▶ START"
+ToggleAuto.Font = Enum.Font.GothamBold
+ToggleAuto.TextSize = 15
+ToggleAuto.TextColor3 = Color3.new(1,1,1)
+ToggleAuto.BackgroundColor3 = Color3.fromRGB(80,140,255)
+ToggleAuto.BorderSizePixel = 0
+Instance.new("UICorner", ToggleAuto).CornerRadius = UDim.new(0,12)
+
+local HideBtn = Instance.new("TextButton", ScreenGui)
+HideBtn.Size = UDim2.new(0,120,0,35)
+HideBtn.Position = UDim2.new(0,20,0.5,0)
+HideBtn.Text = "เปิด / ปิด GUI"
+HideBtn.Font = Enum.Font.GothamBold
+HideBtn.TextSize = 14
+HideBtn.TextColor3 = Color3.new(1,1,1)
+HideBtn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+HideBtn.BorderSizePixel = 0
+HideBtn.Active = true
+HideBtn.Draggable = true
+Instance.new("UICorner", HideBtn).CornerRadius = UDim.new(0,10)
+
+-- ================= FUNCTION =================
+local function getTool(name)
+	if backpack:FindFirstChild(name) then
+		return backpack[name]
+	end
+	if player.Character and player.Character:FindFirstChild(name) then
+		return player.Character[name]
+	end
+end
+
+local function equip(tool)
+	if tool and tool.Parent == backpack then
+		player.Character.Humanoid:EquipTool(tool)
+	end
+end
+
+-- ================= AUTO LOOP =================
+task.spawn(function()
+	while true do
+		if Auto and player.Character then
+			local rem = getTool("Remington 870")
+			local ak = getTool("AK-47")
+
+			if rem and ak then
+				if rem.Parent == player.Character then
+					equip(ak)
+				else
+					equip(rem)
+				end
+			end
+		end
+		task.wait(SWITCH_DELAY)
+	end
+end)
+
+-- ================= BUTTONS =================
+ToggleAuto.MouseButton1Click:Connect(function()
+	Auto = not Auto
+	ToggleAuto.Text = Auto and "■ STOP" or "▶ START"
+	ToggleAuto.BackgroundColor3 = Auto and Color3.fromRGB(255,80,80) or Color3.fromRGB(80,140,255)
+end)
+
+HideBtn.MouseButton1Click:Connect(function()
+	Main.Visible = not Main.Visible
+end)
+    end
+})
+local Button = Tab:Button({
     Title = "gun rgb",
     Locked = false,
     Callback = function()
