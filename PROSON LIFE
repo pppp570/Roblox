@@ -528,14 +528,34 @@ local Button = Tab:Button({
       -- SERVICES
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local backpack = player:WaitForChild("Backpack")
 
 -- CONFIG
-local SWITCH_DELAY = 0.01 -- วินาที (ปรับได้)
+local SWITCH_DELAY = 0.01
 local Auto = false
 
+-- VARIABLES
+local character
+local humanoid
+local backpack
+
+-- ================= CHARACTER HANDLER =================
+local function setupCharacter(char)
+	character = char
+	humanoid = char:WaitForChild("Humanoid")
+	backpack = player:WaitForChild("Backpack")
+end
+
+if player.Character then
+	setupCharacter(player.Character)
+end
+
+player.CharacterAdded:Connect(function(char)
+	setupCharacter(char)
+end)
+
 -- ================= GUI =================
-local ScreenGui = Instance.new("ScreenGui", player.PlayerGui)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
 local Main = Instance.new("Frame", ScreenGui)
@@ -550,7 +570,7 @@ Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 14)
 local Title = Instance.new("TextLabel", Main)
 Title.Size = UDim2.new(1,0,0,40)
 Title.BackgroundTransparency = 1
-Title.Text = "God gun"
+Title.Text = " Gun kill"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 Title.TextColor3 = Color3.new(1,1,1)
@@ -579,31 +599,31 @@ HideBtn.Active = true
 HideBtn.Draggable = true
 Instance.new("UICorner", HideBtn).CornerRadius = UDim.new(0,10)
 
--- ================= FUNCTION =================
+-- ================= FUNCTIONS =================
 local function getTool(name)
-	if backpack:FindFirstChild(name) then
+	if backpack and backpack:FindFirstChild(name) then
 		return backpack[name]
 	end
-	if player.Character and player.Character:FindFirstChild(name) then
-		return player.Character[name]
+	if character and character:FindFirstChild(name) then
+		return character[name]
 	end
 end
 
 local function equip(tool)
-	if tool and tool.Parent == backpack then
-		player.Character.Humanoid:EquipTool(tool)
+	if tool and humanoid and tool.Parent == backpack then
+		humanoid:EquipTool(tool)
 	end
 end
 
 -- ================= AUTO LOOP =================
 task.spawn(function()
 	while true do
-		if Auto and player.Character then
+		if Auto and character and humanoid and humanoid.Health > 0 then
 			local rem = getTool("Remington 870")
 			local ak = getTool("AK-47")
 
 			if rem and ak then
-				if rem.Parent == player.Character then
+				if rem.Parent == character then
 					equip(ak)
 				else
 					equip(rem)
@@ -618,12 +638,15 @@ end)
 ToggleAuto.MouseButton1Click:Connect(function()
 	Auto = not Auto
 	ToggleAuto.Text = Auto and "■ STOP" or "▶ START"
-	ToggleAuto.BackgroundColor3 = Auto and Color3.fromRGB(255,80,80) or Color3.fromRGB(80,140,255)
+	ToggleAuto.BackgroundColor3 = Auto
+		and Color3.fromRGB(255,80,80)
+		or Color3.fromRGB(80,140,255)
 end)
 
 HideBtn.MouseButton1Click:Connect(function()
 	Main.Visible = not Main.Visible
 end)
+
     end
 })
 local Button = Tab:Button({
