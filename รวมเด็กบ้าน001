@@ -1,63 +1,36 @@
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+WindUI:AddTheme({
+    Name = "Moon Space",
+    Accent = Color3.fromHex("#6a5acd"),
+    Background = Color3.fromHex("#FFFFFF"),
+    Text = Color3.fromHex("#0000FF"),
+    Placeholder = Color3.fromHex("#8a88ff"),
+    Button = Color3.fromHex("#33FF00"),
+    Icon = Color3.fromHex("#000000"),
+    Hover = Color3.fromHex("#ffffff"),
+    WindowBackground = Color3.fromHex("#FFFFFF"),
+    WindowShadow = Color3.fromHex("#000000"),
+})
+
 local Window = WindUI:CreateWindow({
-    Title = "So Hub",
-    Icon = "drumstick", -- lucide icon
-    Author = "รวมเด็กบ้าน",
-Background = "rbxassetid://80211841921614",
-    Folder = "Dark",
-    
-    -- ↓ This all is Optional. You can remove it.
+    Title = "So hub ",
+    Icon = "https://cdn.discordapp.com/attachments/1379297032568569909/1436623861826457600/93_20251108144920-removebg-preview.png?ex=6960b33b&is=695f61bb&hm=4471aeacdf6023f9e52f5ee444b7a319cc4f8097a535be6065b9502efc797753&",
+    Author = " รวมเด็กบ้าน",
+    Folder = "So hub X ",
     Size = UDim2.fromOffset(580, 460),
     MinSize = Vector2.new(560, 350),
     MaxSize = Vector2.new(850, 560),
     Transparent = true,
-    Theme = "Dark",
+    Theme = "Moon Space",
     Resizable = true,
     SideBarWidth = 200,
-    BackgroundImageTransparency = 0.42,
-    HideSearchBar = true,
-    ScrollBarEnabled = false,
-    
-    -- ↓ Optional. You can remove it.
-    --[[ You can set 'rbxassetid://' or video to Background.
-        'rbxassetid://':
-            Background = "rbxassetid://", -- rbxassetid
-        Video:
-            Background = "video:YOUR-RAW-LINK-TO-VIDEO.webm", -- video 
-    --]]
-    
-    -- ↓ Optional. You can remove it.
-    User = {
+User = {
         Enabled = true,
         Anonymous = false,
         Callback = function()
             print("clicked")
         end,
-    },
-    
-    --       remove this all, 
-    -- !  ↓  if you DON'T need the key system
-    KeySystem = { 
-        -- ↓ Optional. You can remove it.
-        Key = { "1234", "5678" },
-        
-        Note = "Example Key System.",
-        
-        -- ↓ Optional. You can remove it.
-        Thumbnail = {
-            Image = "rbxassetid://100154960202028",
-            Title = "",
-        },
-        
-        -- ↓ Optional. You can remove it.
-        URL = "1234",
-        
-        -- ↓ Optional. You can remove it.
-        SaveKey = false, -- automatically save and load the key.
-        
-        -- ↓ Optional. You can remove it.
-        -- API = {} ← Services. Read about it below ↓
-    },
+    }
 })
 local Tab = Window:Tab({
     Title = "Farm",
@@ -66,10 +39,32 @@ local Tab = Window:Tab({
 })
 local Button = Tab:Button({
     Title = "ฟาม",
-    Desc = "กดเปิดเพื่อฟาม",
     Locked = false,
     Callback = function()
         loadstring(game:HttpGet(" https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/%E0%B8%9F%E0%B8%B2%E0%B8%A1%E0%B9%80%E0%B8%84%E0%B8%A3%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%87 ", true))()
+    end
+})
+local Button = Tab:Button({
+    Title = "ฟามรวม",
+    Locked = false,
+    Callback = function()
+        --// SERVICES
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+--// MODEL NAME (ชื่อยาวตามที่คุณให้มา)
+local TARGET_NAME = "\224\184\135\224\184\178\224\184\153\224\184\159\224\184\178\224\184\163\224\185\140\224\184\161\224\184\151\224\184\179\224\184\135\224\184\178\224\184\153\224\184\151\224\184\177\224\185\136\224\184\167\224\185\132\224\184\155"
+
+local TargetModel = workspace:WaitForChild(TARGET_NAME)
+
+--// PRESS ALL PROXIMITYPROMPT AT ONCE
+for _,obj in pairs(TargetModel:GetDescendants()) do
+	if obj:IsA("ProximityPrompt") then
+		pcall(function()
+			fireproximityprompt(obj)
+		end)
+	end
+end
     end
 })
 local Tab = Window:Tab({
@@ -79,7 +74,6 @@ local Tab = Window:Tab({
 })
 local Button = Tab:Button({
     Title = "วาปไปฟาม",
-    Desc = "กดเพื่อวาป",
     Locked = false,
     Callback = function()
 local Players = game:GetService("Players")
@@ -95,7 +89,6 @@ end
 })
 local Button = Tab:Button({
     Title = "Killall",
-    Desc = "กดเพื่อเปิด",
     Locked = false,
     Callback = function()
         loadstring(game:HttpGet(" https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/Allm ", true))()
@@ -104,7 +97,6 @@ local Button = Tab:Button({
 
 local Button = Tab:Button({
     Title = "bypass tp",
-    Desc = "บายพาสกันวาป",
     Locked = false,
     Callback = function()
         for i = 1, 3 do
@@ -112,4 +104,10 @@ game.Players.LocalPlayer.Character.Humanoid.Sit = true; task.wait(0.5)
 game.Players.LocalPlayer.Character.Humanoid.Jump = true
 end
     end
+})
+WindUI:Notify({
+    Title = "ขอบคุณที่ใช้บริการ",
+    Content = "ใช้กันดีๆ!",
+    Duration = 3, -- 3 seconds
+    Icon = "bell-ring",
 })
