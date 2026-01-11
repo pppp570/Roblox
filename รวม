@@ -1,0 +1,90 @@
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+WindUI:GetTransparency(Dark)
+WindUI:GetThemes(Dark)
+local Window = WindUI:CreateWindow({
+    Title = "So hub",
+    Icon = "hand", -- lucide icon. optional
+    Author = "by .  โซฮับ", -- optional
+})
+local Section = Window:Section({
+    Title = "รวมสคริปฟรอมช่าง!!",
+    Icon = "boxes",
+    Opened = true,
+})
+local Tab = Window:Tab({
+    Title = "ราชาอาชีวะ",
+    Icon = "files", -- optional
+    Locked = false,
+})
+local Button = Tab:Button({
+    Title = "สคริปราชาอาชีวะ",
+    Desc = "Test Button",
+    Locked = false,
+    Callback = function()
+loadstring(game:HttpGet(" https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/%E0%B8%9F%E0%B8%A5%E0%B8%B9 ", true))()
+    end
+})
+local Button = Tab:Button({
+    Title = "ฟามปูน",
+    Desc = "Test Button",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet(" https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/%E0%B8%AA%E0%B9%88%E0%B8%87%E0%B8%9B%E0%B8%B9%E0%B8%992 ", true))()
+    end
+})
+local Tab = Window:Tab({
+    Title = "รวมเด็กบ้าน",
+    Icon = "files", -- optional
+    Locked = false,
+})
+
+local Button = Tab:Button({
+    Title = "สคริปฟาม",
+    Desc = "Test Button",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet(" https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/%E0%B8%9F%E0%B8%B2%E0%B8%A1%E0%B9%80%E0%B8%84%E0%B8%A3%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%87 ", true))()
+    end
+})
+local Tab = Window:Tab({
+    Title = "fps",
+    Icon = "cpu", -- optional
+    Locked = false,
+})
+local Button = Tab:Button({
+    Title = "บูสfps",
+    Desc = "Test Button",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet(" https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/Fps ", true))()
+    end
+})Window:Tag({
+    Title = " So huh",
+    Color = Color3.fromHex("#30ff6a"),
+    Radius = 0, -- from 0 to 13
+})
+WindUI:Notify({
+    Title = "Notification Title",
+    Content = "Notification Content example!",
+    Duration = 3, -- 3 seconds
+    Icon = "bird",
+})
+WindUI:Popup({
+    Title = "ขอบคุณที่ใช้บริการ",
+    Icon = "bot",
+    Content = "ยินดีต้อนรับ",
+    Buttons = {
+        {
+            Title = "Cancel",
+            Callback = function() end,
+            Variant = "Tertiary",
+        },
+        {
+            Title = "Continue",
+            Icon = "bolt",
+            Callback = function() end,
+            Variant = "Primary",
+        }
+    }
+})
+
