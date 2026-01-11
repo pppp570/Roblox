@@ -1,0 +1,100 @@
+-- ================= SERVICES =================
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- ================= PLAYER =================
+local LocalPlayer = Players.LocalPlayer
+
+local function getCharacter()
+	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	return char,
+		char:WaitForChild("Humanoid"),
+		char:WaitForChild("HumanoidRootPart")
+end
+
+local Character, Humanoid, Root = getCharacter()
+
+LocalPlayer.CharacterAdded:Connect(function()
+	task.wait(0.2)
+	Character, Humanoid, Root = getCharacter()
+end)
+
+-- ================= SETTINGS =================
+local TELEPORT_POSITION = Vector3.new(887.06, 122.04, 2582.81)
+local SEARCH_DISTANCE = 120
+
+-- ================= RUN CAR SPAWNER (ต้องรันก่อน) =================
+local function runCarSpawner()
+	local carSpawner = workspace
+		:WaitForChild("Prison_ITEMS")
+		:WaitForChild("buttons")
+		:WaitForChild("Car Spawner")
+		:WaitForChild("Car Spawner")
+
+	ReplicatedStorage
+		:WaitForChild("Remotes")
+		:WaitForChild("InteractWithItem")
+		:InvokeServer(carSpawner)
+end
+
+-- ================= FIND NEAREST VEHICLE SEAT =================
+local function getNearestVehicleSeat()
+	local nearestSeat
+	local nearestDist = math.huge
+
+	local carContainer = workspace:FindFirstChild("CarContainer")
+	if not carContainer then return nil end
+
+	for _, car in ipairs(carContainer:GetChildren()) do
+		if car:FindFirstChild("Body") then
+			for _, v in ipairs(car.Body:GetDescendants()) do
+				if v:IsA("VehicleSeat") and not v.Occupant then
+					local dist = (v.Position - Root.Position).Magnitude
+					if dist < nearestDist and dist <= SEARCH_DISTANCE then
+						nearestDist = dist
+						nearestSeat = v
+					end
+				end
+			end
+		end
+	end
+
+	return nearestSeat
+end
+
+-- ================= FORCE SIT + TELEPORT =================
+local function forceSitAndTeleport()
+	for i = 1, 40 do -- รอสูงสุด ~4 วิ
+		local seat = getNearestVehicleSeat()
+
+		if seat then
+			-- วาปไปบนเบาะ
+			Root.CFrame = seat.CFrame * CFrame.new(0, 2, 0)
+			task.wait(0.2)
+
+			-- บังคับนั่ง
+			seat:Sit(Humanoid)
+
+			-- รอให้นั่งจริง
+			repeat task.wait() until Humanoid.SeatPart == seat
+
+			-- วาปทั้งคัน (ไม่เด้ง)
+			local model = seat:FindFirstAncestorOfClass("Model")
+			if model and model.PrimaryPart then
+				model:PivotTo(CFrame.new(TELEPORT_POSITION))
+			else
+				-- fallback ถ้าไม่มี PrimaryPart
+				seat.CFrame = CFrame.new(TELEPORT_POSITION)
+			end
+
+			return
+		end
+
+		task.wait(0.1)
+	end
+end
+
+-- ================= RUN ORDER =================
+runCarSpawner()          -- 1) รัน Car Spawner
+task.wait(1)             -- 1) รอรถเกิด
+forceSitAndTeleport()    -- 0.1) นั่ง → 4) วาปไปตำแหน่งที่กำหนด
