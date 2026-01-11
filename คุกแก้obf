@@ -78,7 +78,7 @@ Window:ToggleTransparency(true)
 Window:EditOpenButton({Enabled = false})
 Window:Tag(
     {
-        Title = "Prison life",
+        Title = "Prison life👮",
         Icon = "",
         Color = Color3.fromHex("#0000FF"),
         Radius = 8 -- from 0 to 13
@@ -86,7 +86,7 @@ Window:Tag(
 )
 Window:Tag(
     {
-        Title = "So hub",
+        Title = "So hub🥷",
         Icon = "",
         Color = Color3.fromHex("#FF0000"),
         Radius = 8 -- from 0 to 13
