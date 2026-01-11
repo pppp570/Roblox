@@ -23,7 +23,7 @@ local Window =
     WindUI:CreateWindow(
     {
         Title = "So hub ",
-        Icon = "https://cdn.discordapp.com/attachments/1379297032568569909/1455275853742346514/109_20251220214919-removebg-preview_1.png?ex=695f5781&is=695e0601&hm=34022c77ca79d837fc8e21c41469e7f8085fdcea42745e1bae768b720165302f&",
+        Icon = "https://cdn.discordapp.com/attachments/1379297032568569909/1436623861826457600/93_20251108144920-removebg-preview.png?ex=6963fefb&is=6962ad7b&hm=ad90ce633a9c9cfb8a01a03c15cbd824e12428b36838ae2d23073e6942301dac&",
         Author = " Premium",
         Folder = "So hub X ",
         Size = UDim2.fromOffset(580, 460),
