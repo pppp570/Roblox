@@ -1,0 +1,111 @@
+--// SERVICES
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+--// GLOBAL
+_G.HeadSize = 20
+_G.Disabled = false
+local DEFAULT_SIZE = 5
+
+--// GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HitboxGui"
+ScreenGui.Parent = game.CoreGui
+
+local Main = Instance.new("Frame")
+Main.Parent = ScreenGui
+Main.BackgroundColor3 = Color3.fromRGB(25,25,25)
+Main.Size = UDim2.new(0,220,0,200)
+Main.Position = UDim2.new(0.5,-110,0.4,0)
+Main.Active = true
+Main.Draggable = true
+
+local UICorner = Instance.new("UICorner", Main)
+UICorner.CornerRadius = UDim.new(0,12)
+
+--// TITLE
+local Title = Instance.new("TextLabel")
+Title.Parent = Main
+Title.Size = UDim2.new(1,0,0,35)
+Title.BackgroundTransparency = 1
+Title.Text = "Hitbox Controller"
+Title.TextColor3 = Color3.new(1,1,1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+
+--// STATUS
+local Status = Instance.new("TextLabel")
+Status.Parent = Main
+Status.Position = UDim2.new(0,0,0,35)
+Status.Size = UDim2.new(1,0,0,30)
+Status.BackgroundTransparency = 1
+Status.Text = "Status : OFF"
+Status.TextColor3 = Color3.fromRGB(255,80,80)
+Status.Font = Enum.Font.Gotham
+Status.TextSize = 14
+
+--// BUTTON CREATOR
+local function createButton(text, y)
+	local b = Instance.new("TextButton")
+	b.Parent = Main
+	b.Size = UDim2.new(1,-20,0,30)
+	b.Position = UDim2.new(0,10,0,y)
+	b.Text = text
+	b.Font = Enum.Font.Gotham
+	b.TextSize = 14
+	b.TextColor3 = Color3.new(1,1,1)
+	b.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	Instance.new("UICorner", b)
+	return b
+end
+
+--// BUTTONS
+local Toggle = createButton("เปิด / ปิด", 70)
+local Plus = createButton("➕ เพิ่มขนาด", 110)
+local Minus = createButton("➖ ลดขนาด", 145)
+local Reset = createButton("♻ รีเซ็ตขนาด", 180)
+
+--// BUTTON FUNCTIONS
+Toggle.MouseButton1Click:Connect(function()
+	_G.Disabled = not _G.Disabled
+	if _G.Disabled then
+		Status.Text = "Status : ON"
+		Status.TextColor3 = Color3.fromRGB(80,255,80)
+	else
+		Status.Text = "Status : OFF"
+		Status.TextColor3 = Color3.fromRGB(255,80,80)
+	end
+end)
+
+Plus.MouseButton1Click:Connect(function()
+	_G.HeadSize = _G.HeadSize + 2
+end)
+
+Minus.MouseButton1Click:Connect(function()
+	if _G.HeadSize > 2 then
+		_G.HeadSize = _G.HeadSize - 2
+	end
+end)
+
+Reset.MouseButton1Click:Connect(function()
+	_G.HeadSize = DEFAULT_SIZE
+end)
+
+--// MAIN LOOP
+RunService.RenderStepped:Connect(function()
+	if _G.Disabled then
+		for _,v in pairs(Players:GetPlayers()) do
+			if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+				pcall(function()
+					local hrp = v.Character.HumanoidRootPart
+					hrp.Size = Vector3.new(_G.HeadSize,_G.HeadSize,_G.HeadSize)
+					hrp.Transparency = 0.7
+					hrp.BrickColor = BrickColor.new("Really black")
+					hrp.Material = Enum.Material.Neon
+					hrp.CanCollide = false
+				end)
+			end
+		end
+	end
+end)
