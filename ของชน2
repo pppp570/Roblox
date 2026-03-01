@@ -1,0 +1,173 @@
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+local Window = WindUI:CreateWindow({
+    Title = "so Hub",
+    Icon = "chess-queen",
+    Author = "เอาไว้ชน",
+})
+
+-- ปิดปุ่ม OpenButton เดิม
+Window:EditOpenButton({
+    Enabled = false,
+})
+
+Window:ToggleTransparency(true)
+
+--------------------------------------------------
+-- FLOATING ICON (OPEN UI)
+--------------------------------------------------
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local IconGui = Instance.new("ScreenGui")
+IconGui.Name = "soHub_OpenIcon"
+IconGui.ResetOnSpawn = false
+IconGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+IconGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local OpenButton = Instance.new("ImageButton")
+OpenButton.Parent = IconGui
+OpenButton.Size = UDim2.fromScale(0.08, 0.08)
+OpenButton.Position = UDim2.fromScale(0.05, 0.4)
+
+-- โปร่งใส
+OpenButton.BackgroundTransparency = 1
+OpenButton.ImageTransparency = 0
+
+-- ใส่รูปไอคอน (เปลี่ยน id ได้)
+OpenButton.Image = "rbxassetid://100154960202028"
+
+OpenButton.Active = true
+OpenButton.Draggable = true
+OpenButton.AutoButtonColor = false
+OpenButton.ZIndex = 9999
+
+-- ทำให้กลม
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(1, 0)
+corner.Parent = OpenButton
+
+local ratio = Instance.new("UIAspectRatioConstraint")
+ratio.AspectRatio = 1
+ratio.Parent = OpenButton
+
+-- กดแล้วเปิด UI
+OpenButton.MouseButton1Click:Connect(function()
+    OpenButton.Visible = false
+    Window:Open()
+end)
+
+-- ปิด UI แล้วให้ปุ่มกลับมา
+Window:OnClose(function()
+    OpenButton.Visible = true
+end)
+
+-- ถ้า UI ถูกลบ
+Window:OnDestroy(function()
+    OpenButton.Visible = false
+end)
+
+local Tab = Window:Tab({
+    Title = "Tab Title",
+    Icon = "axe",
+    Locked = false,
+})
+
+
+Tab:Button({
+    Title = "bypass hitbox",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/%E0%B8%82%E0%B8%AD%E0%B8%87%E0%B9%81%E0%B8%AD%E0%B8%94%E0%B8%A1%E0%B8%B4%E0%B8%99%E0%B9%82%E0%B8%A3", true))()
+    end
+})
+
+_G.ESPEnabled = false
+_G.HeadSize = 20
+_G.VisualColor = Color3.fromRGB(255, 0, 0)
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local function ApplyHitbox()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            pcall(function()
+                local char = plr.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    hrp.Size = Vector3.new(_G.HeadSize, _G.HeadSize, _G.HeadSize)
+                    hrp.Transparency = 0.7
+                    hrp.Material = Enum.Material.Neon
+                    hrp.Color = _G.VisualColor
+                    hrp.CanCollide = false
+                end
+            end)
+        end
+    end
+end
+
+local function ResetHitbox()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            pcall(function()
+                local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    hrp.Size = Vector3.new(2, 2, 1)
+                    hrp.Transparency = 1
+                    hrp.Material = Enum.Material.Plastic
+                end
+            end)
+        end
+    end
+end
+
+task.spawn(function()
+    while task.wait(0.15) do
+        if _G.ESPEnabled then
+            ApplyHitbox()
+        end
+    end
+end)
+
+
+Tab:Toggle({
+    Title = "hitbox",
+    Default = false,
+    Callback = function(state)
+        _G.ESPEnabled = state
+        if state then
+            ApplyHitbox()
+        else
+            ResetHitbox()
+        end
+    end
+})
+
+Tab:Slider({
+    Title = "Hitbox Size",
+    Step = 1,
+    Value = {
+        Min = 5,
+        Max = 100,
+        Default = _G.HeadSize,
+    },
+    Callback = function(value)
+        _G.HeadSize = value
+        if _G.ESPEnabled then
+            ApplyHitbox()
+        end
+    end
+})
+
+Tab:Colorpicker({
+    Title = "Color",
+    Default = _G.VisualColor,
+    Transparency = 0,
+    Callback = function(color)
+        _G.VisualColor = color
+        if _G.ESPEnabled then
+            ApplyHitbox()
+        end
+    end
+})
