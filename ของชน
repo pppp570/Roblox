@@ -1,0 +1,240 @@
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+local Window = WindUI:CreateWindow({
+    Title = "so Hub",
+    Icon = "chess-queen",
+    Author = "soHub",
+})
+
+Window:EditOpenButton({
+    Enabled = false,
+})
+
+Window:ToggleTransparency(true)
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local IconGui = Instance.new("ScreenGui")
+IconGui.Name = "soHub_OpenIcon"
+IconGui.ResetOnSpawn = false
+IconGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+IconGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local OpenButton = Instance.new("ImageButton")
+OpenButton.Parent = IconGui
+OpenButton.Size = UDim2.fromScale(0.08, 0.08)
+OpenButton.Position = UDim2.fromScale(0.05, 0.4)
+OpenButton.BackgroundTransparency = 1
+OpenButton.ImageTransparency = 0
+OpenButton.Image = "rbxassetid://100154960202028"
+OpenButton.Active = true
+OpenButton.Draggable = true
+OpenButton.AutoButtonColor = false
+OpenButton.ZIndex = 9999
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(1, 0)
+corner.Parent = OpenButton
+
+local ratio = Instance.new("UIAspectRatioConstraint")
+ratio.AspectRatio = 1
+ratio.Parent = OpenButton
+
+OpenButton.MouseButton1Click:Connect(function()
+    OpenButton.Visible = false
+    Window:Open()
+end)
+
+Window:OnClose(function()
+    OpenButton.Visible = true
+end)
+
+Window:OnDestroy(function()
+    OpenButton.Visible = false
+end)
+
+local HitboxTab = Window:Tab({
+    Title = "Hitbox",
+    Icon = "axe",
+    Locked = false,
+})
+
+HitboxTab:Button({
+    Title = "Bypass Hitbox",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/pppp570/Roblox/refs/heads/main/admin.lua", true))()
+    end
+})
+
+_G.ESPEnabled = false
+_G.HeadSize = 20
+_G.VisualColor = Color3.fromRGB(255, 0, 0)
+
+local function ApplyHitbox()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            pcall(function()
+                local char = plr.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    hrp.Size = Vector3.new(_G.HeadSize, _G.HeadSize, _G.HeadSize)
+                    hrp.Transparency = 0.7
+                    hrp.Material = Enum.Material.Neon
+                    hrp.Color = _G.VisualColor
+                    hrp.CanCollide = false
+                end
+            end)
+        end
+    end
+end
+
+local function ResetHitbox()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            pcall(function()
+                local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    hrp.Size = Vector3.new(2, 2, 1)
+                    hrp.Transparency = 1
+                    hrp.Material = Enum.Material.Plastic
+                end
+            end)
+        end
+    end
+end
+
+task.spawn(function()
+    while task.wait(0.15) do
+        if _G.ESPEnabled then
+            ApplyHitbox()
+        end
+    end
+end)
+
+HitboxTab:Toggle({
+    Title = "Enable Hitbox",
+    Default = false,
+    Callback = function(state)
+        _G.ESPEnabled = state
+        if state then
+            ApplyHitbox()
+        else
+            ResetHitbox()
+        end
+    end
+})
+
+HitboxTab:Slider({
+    Title = "Hitbox Size",
+    Step = 1,
+    Value = {
+        Min = 5,
+        Max = 100,
+        Default = _G.HeadSize,
+    },
+    Callback = function(value)
+        _G.HeadSize = value
+        if _G.ESPEnabled then
+            ApplyHitbox()
+        end
+    end
+})
+
+HitboxTab:Colorpicker({
+    Title = "Color",
+    Default = _G.VisualColor,
+    Transparency = 0,
+    Callback = function(color)
+        _G.VisualColor = color
+        if _G.ESPEnabled then
+            ApplyHitbox()
+        end
+    end
+})
+local ESPTab = Window:Tab({
+    Title = "ESP",
+    Icon = "eye",
+    Locked = false,
+})
+
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+
+local ENABLE = false
+local LINE_THICKNESS = 1.8
+local RGB_SPEED = 0.6
+
+local Lines = {}
+
+local function createLine(player)
+    if player == LocalPlayer then return end
+    local line = Drawing.new("Line")
+    line.Visible = false
+    line.Thickness = LINE_THICKNESS
+    line.Transparency = 1
+    Lines[player] = line
+end
+
+local function removeLine(player)
+    if Lines[player] then
+        Lines[player]:Remove()
+        Lines[player] = nil
+    end
+end
+
+for _, p in ipairs(Players:GetPlayers()) do
+    createLine(p)
+end
+
+Players.PlayerAdded:Connect(createLine)
+Players.PlayerRemoving:Connect(removeLine)
+
+RunService.RenderStepped:Connect(function()
+    if not ENABLE then
+        for _, line in pairs(Lines) do
+            line.Visible = false
+        end
+        return
+    end
+
+    local screenSize = Camera.ViewportSize
+    local topCenter = Vector2.new(screenSize.X / 2, 0)
+
+    local hue = (tick() * RGB_SPEED) % 1
+    local rgbColor = Color3.fromHSV(hue, 1, 1)
+
+    for player, line in pairs(Lines) do
+        local char = player.Character
+        local head = char and char:FindFirstChild("Head")
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+
+        if head and hum and hum.Health > 0 then
+            local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
+            if onScreen then
+                line.From = Vector2.new(pos.X, pos.Y)
+                line.To = topCenter
+                line.Color = rgbColor
+                line.Visible = true
+            else
+                line.Visible = false
+            end
+        else
+            line.Visible = false
+        end
+    end
+end)
+
+ESPTab:Toggle({
+    Title = "ESP Line",
+    Default = false,
+    Callback = function(state)
+        ENABLE = state
+        if not state then
+            for _, line in pairs(Lines) do
+                line.Visible = false
+            end
+        end
+    end
+})
