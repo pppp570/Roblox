@@ -244,3 +244,207 @@ Tab:Toggle({
         circle.Visible = state
     end
 })
+local Tab = Window:Tab({
+    Title = "esp",
+    Icon = "eye", -- optional
+    Locked = false,
+})
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local espEnabled = false
+
+-- เก็บ Highlight ทั้งหมด
+local espObjects = {}
+
+--------------------------------------------------
+-- สร้าง ESP
+--------------------------------------------------
+local function createESP(character)
+	if not character then return end
+	if character:FindFirstChild("ESP_Box") then return end
+	
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "ESP_Box"
+	highlight.Adornee = character
+	highlight.FillTransparency = 1 -- กล่องใส
+	highlight.OutlineColor = Color3.fromRGB(255,0,0)
+	highlight.OutlineTransparency = 0
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	
+	highlight.Parent = character
+	table.insert(espObjects, highlight)
+end
+
+--------------------------------------------------
+-- ลบ ESP ทั้งหมด
+--------------------------------------------------
+local function removeESP()
+	for _, v in pairs(espObjects) do
+		if v and v.Parent then
+			v:Destroy()
+		end
+	end
+	espObjects = {}
+end
+
+--------------------------------------------------
+-- ใส่ ESP ให้ผู้เล่น
+--------------------------------------------------
+local function setupPlayer(player)
+	if player == LocalPlayer then return end
+	
+	player.CharacterAdded:Connect(function(char)
+		task.wait(1)
+		if espEnabled then
+			createESP(char)
+		end
+	end)
+	
+	if player.Character and espEnabled then
+		createESP(player.Character)
+	end
+end
+
+for _, player in pairs(Players:GetPlayers()) do
+	setupPlayer(player)
+end
+
+Players.PlayerAdded:Connect(setupPlayer)
+
+--------------------------------------------------
+-- Toggle ของคุณ
+--------------------------------------------------
+local Toggle = Tab:Toggle({
+Title = "ESP Box",
+Desc = "เปิด / ปิด กล่องใสรอบตัวละคร",
+Icon = "bird",
+Type = "Checkbox",
+Value = false,
+Callback = function(state)
+	espEnabled = state
+	
+	if state then
+		for _, player in pairs(Players:GetPlayers()) do
+			if player ~= LocalPlayer and player.Character then
+				createESP(player.Character)
+			end
+		end
+	else
+		removeESP()
+	end
+	
+	print("ESP:", state)
+end
+})
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local MAX_DISTANCE = 500
+
+local nameTags = {}
+local espEnabled = false -- สถานะเปิด/ปิด
+
+--------------------------------------------------
+-- สร้างป้ายชื่อเล็กๆ
+--------------------------------------------------
+
+local function createNameTag(player)
+	if player == LocalPlayer then return end
+	
+	local function setupCharacter(character)
+		local root = character:WaitForChild("HumanoidRootPart", 5)
+		if not root then return end
+		
+		if nameTags[player] then
+			nameTags[player]:Destroy()
+		end
+		
+		local billboard = Instance.new("BillboardGui")
+		billboard.Name = "SmallNameTag"
+		billboard.Size = UDim2.new(0, 90, 0, 18)
+		billboard.StudsOffset = Vector3.new(0, -2.5, 0)
+		billboard.AlwaysOnTop = true
+		billboard.Enabled = false
+		billboard.Adornee = root
+		billboard.Parent = root
+		
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.new(1, 0, 1, 0)
+		label.BackgroundTransparency = 1
+		label.TextSize = 11
+		label.Font = Enum.Font.GothamBold
+		label.TextColor3 = Color3.fromRGB(255,255,255)
+		label.TextStrokeTransparency = 0.4
+		label.Text = "[" .. player.Name .. "]"
+		label.Parent = billboard
+		
+		nameTags[player] = billboard
+	end
+	
+	if player.Character then
+		setupCharacter(player.Character)
+	end
+	
+	player.CharacterAdded:Connect(setupCharacter)
+end
+
+--------------------------------------------------
+-- ตรวจจับผู้เล่น
+--------------------------------------------------
+
+for _, player in pairs(Players:GetPlayers()) do
+	createNameTag(player)
+end
+
+Players.PlayerAdded:Connect(createNameTag)
+
+Players.PlayerRemoving:Connect(function(player)
+	if nameTags[player] then
+		nameTags[player]:Destroy()
+		nameTags[player] = nil
+	end
+end)
+
+--------------------------------------------------
+-- เช็คระยะ
+--------------------------------------------------
+
+RunService.RenderStepped:Connect(function()
+	if not espEnabled then return end
+	if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+	
+	local myRoot = LocalPlayer.Character.HumanoidRootPart
+	
+	for player, gui in pairs(nameTags) do
+		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+			local targetRoot = player.Character.HumanoidRootPart
+			local distance = (myRoot.Position - targetRoot.Position).Magnitude
+			
+			gui.Enabled = distance <= MAX_DISTANCE
+		end
+	end
+end)
+
+--------------------------------------------------
+-- เชื่อมกับ Toggle ของคุณ
+--------------------------------------------------
+
+local Toggle = Tab:Toggle({
+    Title = "Name ESP",
+    Desc = "Show players within 500 studs",
+    Icon = "bird",
+    Type = "Checkbox",
+    Value = false,
+    Callback = function(state)
+        espEnabled = state
+        
+        -- ถ้าปิด ให้ซ่อนทั้งหมดทันที
+        if not state then
+            for _, gui in pairs(nameTags) do
+                gui.Enabled = false
+            end
+        end
+    end
+})
