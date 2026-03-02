@@ -23,20 +23,12 @@ local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
-
-
----
-
--- ตัวแปรระบบ
-
 local selectedModes = {}
 local lockConnection = nil
 local currentTarget = nil
 
 
----
 
--- ฟังก์ชันตรวจสอบว่าเป้าหมายใช้งานได้
 
 local function isValidTarget(player, partName)
 if player == LocalPlayer then return false end
@@ -94,7 +86,7 @@ end
 
 ---
 
--- DROPDOWN เลือกโหมด
+
 
 local Dropdown = Tab:Dropdown({
 Title = "โหมดการล็อค",
@@ -110,9 +102,6 @@ end
 })
 
 
----
-
--- TOGGLE เปิด/ปิดล็อค
 
 local Toggle = Tab:Toggle({
 Title = "ยืนยันเปิดการล็อค",
@@ -136,8 +125,7 @@ if not state then
     currentTarget = nil    
     return    
 end    
-
--- เปิดระบบ    
+    
 lockConnection = RunService.RenderStepped:Connect(function()    
 
     local partName = nil    
