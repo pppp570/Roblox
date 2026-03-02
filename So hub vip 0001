@@ -1,190 +1,50 @@
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-Title = "My Super Hub",
-Icon = "door-open", -- lucide icon. optional
-Author = "by .ftgs and .ftgs", -- optional
-User = {
-Enabled = true,
-Anonymous = false,
-Callback = function()
-print("clicked")
-end,
-},
+    Title = "My Super Hub",
+    Icon = "door-open",
+    Author = "by .ftgs and .ftgs",
+    User = {
+        Enabled = true,
+        Anonymous = false,
+        Callback = function()
+            print("clicked")
+        end,
+    },
 })
+
 Window:ToggleTransparency(true)
+
 local Tab = Window:Tab({
-Title = "Tab Title",
-Icon = "bird", -- optional
-Locked = false,
+    Title = "Aimbot",
+    Icon = "bird",
+    Locked = false,
 })
+
+--------------------------------------------------
+-- SERVICES
+--------------------------------------------------
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
+
+--------------------------------------------------
+-- ตัวแปรระบบ
+--------------------------------------------------
+
 local selectedModes = {}
 local lockConnection = nil
 local currentTarget = nil
 
-
-
-
-local function isValidTarget(player, partName)
-if player == LocalPlayer then return false end
-if not player.Character then return false end
-
-local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-local part = player.Character:FindFirstChild(partName)
-
-if not humanoid or humanoid.Health <= 0 then
-return false
-end
-
-if not part then
-return false
-end
-
-local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
-
-if not onScreen or screenPos.Z <= 0 then
-return false
-end
-
-return true
-
-end
-
-
----
-
--- หาเป้าหมายใกล้กลางจอที่สุด
-
-local function getClosestTarget(partName)
-local closest = nil
-local shortestDistance = math.huge
-local screenCenter = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
-
-for _, player in pairs(Players:GetPlayers()) do
-if isValidTarget(player, partName) then
-local part = player.Character[partName]
-local screenPos = Camera:WorldToViewportPoint(part.Position)
-local distance = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
-
-if distance < shortestDistance then    
-        shortestDistance = distance    
-        closest = part    
-    end    
-end
-
-end
-
-return closest
-
-end
-
-
----
-
-
-
-local Dropdown = Tab:Dropdown({
-Title = "โหมดการล็อค",
-Desc = "เลือกว่าจะล็อคตัวหรือหัว",
-Values = { "ล็อคตัว", "ล็อคหัว" },
-Value = {},
-Multi = true,
-AllowNone = true,
-Callback = function(option)
-selectedModes = option
-print("เลือกโหมด: " .. HttpService:JSONEncode(option))
-end
-})
-
-
-
-local Toggle = Tab:Toggle({
-Title = "ยืนยันเปิดการล็อค",
-Desc = "ต้องเลือกโหมดก่อนถึงจะเปิดได้",
-Default = false,
-Callback = function(state)
-
--- ถ้าไม่เลือกอะไรเลย → ไม่ให้เปิด
-if state and (#selectedModes == 0) then
-warn("กรุณาเลือกโหมดก่อน")
-Toggle:Set(false)
-return
-end
-
--- ปิดระบบ    
-if not state then    
-    if lockConnection then    
-        lockConnection:Disconnect()    
-        lockConnection = nil    
-    end    
-    currentTarget = nil    
-    return    
-end    
-    
-lockConnection = RunService.RenderStepped:Connect(function()    
-
-    local partName = nil    
-
-    -- ถ้าเลือกหัว ให้หัวมาก่อน    
-    if table.find(selectedModes, "ล็อคหัว") then    
-        partName = "Head"    
-    elseif table.find(selectedModes, "ล็อคตัว") then    
-        partName = "HumanoidRootPart"    
-    end    
-
-    if not partName then return end    
-
-    -- ถ้าเป้าหมายเดิมยังใช้ได้ ให้ใช้ต่อ    
-    if currentTarget and currentTarget.Parent then    
-        local humanoid = currentTarget.Parent:FindFirstChildOfClass("Humanoid")    
-        local screenPos, onScreen = Camera:WorldToViewportPoint(currentTarget.Position)    
-
-        if humanoid and humanoid.Health > 0 and onScreen and screenPos.Z > 0 then    
-            local newCFrame = CFrame.new(    
-                Camera.CFrame.Position,    
-                currentTarget.Position    
-            )    
-            Camera.CFrame = Camera.CFrame:Lerp(newCFrame, 0.25)    
-            return    
-        end    
-    end    
-
-    -- หาเป้าหมายใหม่    
-    currentTarget = getClosestTarget(partName)    
-
-    if currentTarget then    
-        local newCFrame = CFrame.new(    
-            Camera.CFrame.Position,    
-            currentTarget.Position    
-        )    
-        Camera.CFrame = Camera.CFrame:Lerp(newCFrame, 0.25)    
-    end    
-end)
-
-end
-
-})
-
--- FOV UI SYSTEM (ไม่ใช้ Drawing)
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
-
 local fovEnabled = false
 local FOV_RADIUS = 150
 
-
----
-
--- สร้าง GUI
+--------------------------------------------------
+-- FOV GUI
+--------------------------------------------------
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FOV_GUI"
@@ -208,133 +68,179 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(1, 0)
 corner.Parent = circle
 
-
----
-
--- อัปเดตตำแหน่ง + ขนาด
-
 RunService.RenderStepped:Connect(function()
-if not fovEnabled then return end
-
-circle.Size = UDim2.fromOffset(FOV_RADIUS * 2, FOV_RADIUS * 2)  
-circle.Position = UDim2.fromScale(0.5, 0.5)
-
+    if fovEnabled then
+        circle.Size = UDim2.fromOffset(FOV_RADIUS * 2, FOV_RADIUS * 2)
+        circle.Position = UDim2.fromScale(0.5, 0.5)
+    end
 end)
 
+--------------------------------------------------
+-- ตรวจสอบมองเห็นจริง (กันกำแพง)
+--------------------------------------------------
 
----
+local function isVisible(part)
+    local origin = Camera.CFrame.Position
+    local direction = part.Position - origin
 
--- Toggle เปิด/ปิด
+    local rayParams = RaycastParams.new()
+    rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+    rayParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    rayParams.IgnoreWater = true
 
-local FOVToggle = Tab:Toggle({
-Title = "เปิดวง FOV",
-Desc = "แสดง/ซ่อนวงกลางจอ",
-Default = false,
-Callback = function(state)
-fovEnabled = state
-circle.Visible = state
+    local result = workspace:Raycast(origin, direction, rayParams)
+
+    if result then
+        return result.Instance:IsDescendantOf(part.Parent)
+    end
+
+    return true
 end
+
+--------------------------------------------------
+-- ตรวจสอบว่าใช้ได้ไหม
+--------------------------------------------------
+
+local function isValidTarget(player, partName)
+    if player == LocalPlayer then return false end
+    if not player.Character then return false end
+
+    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+    local part = player.Character:FindFirstChild(partName)
+
+    if not humanoid or humanoid.Health <= 0 then
+        return false
+    end
+
+    if not part then
+        return false
+    end
+
+    local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
+
+    if not onScreen or screenPos.Z <= 0 then
+        return false
+    end
+
+    -- เช็ค FOV
+    if fovEnabled then
+        local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+        local distance = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+        if distance > FOV_RADIUS then
+            return false
+        end
+    end
+
+    -- เช็คกำแพง
+    if not isVisible(part) then
+        return false
+    end
+
+    return true
+end
+
+--------------------------------------------------
+-- หาเป้าหมายใกล้กลางจอที่สุด
+--------------------------------------------------
+
+local function getClosestTarget(partName)
+    local closest = nil
+    local shortestDistance = math.huge
+    local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if isValidTarget(player, partName) then
+            local part = player.Character[partName]
+            local screenPos = Camera:WorldToViewportPoint(part.Position)
+            local distance = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+
+            if distance < shortestDistance then
+                shortestDistance = distance
+                closest = part
+            end
+        end
+    end
+
+    return closest
+end
+
+--------------------------------------------------
+-- DROPDOWN
+--------------------------------------------------
+
+Tab:Dropdown({
+    Title = "โหมดการล็อค",
+    Desc = "เลือกว่าจะล็อคตัวหรือหัว",
+    Values = {"ล็อคตัว","ล็อคหัว"},
+    Multi = true,
+    AllowNone = true,
+    Callback = function(option)
+        selectedModes = option
+        print("เลือกโหมด: "..HttpService:JSONEncode(option))
+    end
 })
-local Tab = Window:Tab({
-Title = "esp",
-Icon = "eye", -- optional
-Locked = false,
-})
--- SERVICES
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local Camera = workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
 
--- SETTINGS
-local ENABLE = false -- ❗ ให้ Toggle คุม
-local LINE_THICKNESS = 1.8
-local RGB_SPEED = 0.6
+--------------------------------------------------
+-- TOGGLE LOCK
+--------------------------------------------------
 
-local Lines = {}
-
--- ================== CREATE / REMOVE LINE ==================
-local function createLine(player)
-if player == LocalPlayer then return end
-
-local line = Drawing.new("Line")  
-line.Visible = false  
-line.Thickness = LINE_THICKNESS  
-line.Transparency = 1  
-
-Lines[player] = line
-
-end
-
-local function removeLine(player)
-if Lines[player] then
-Lines[player]:Remove()
-Lines[player] = nil
-end
-end
-
--- ================== PLAYER CHECK ==================
-for _, p in ipairs(Players:GetPlayers()) do
-createLine(p)
-end
-
-Players.PlayerAdded:Connect(createLine)
-Players.PlayerRemoving:Connect(removeLine)
-
--- ================== RENDER ==================
-RunService.RenderStepped:Connect(function()
-if not ENABLE then
-for _, line in pairs(Lines) do
-line.Visible = false
-end
-return
-end
-
-local screenSize = Camera.ViewportSize  
-local topCenter = Vector2.new(screenSize.X / 2, 0)  
-
-local hue = (tick() * RGB_SPEED) % 1  
-local rgbColor = Color3.fromHSV(hue, 1, 1)  
-
-for player, line in pairs(Lines) do  
-	local char = player.Character  
-	local head = char and char:FindFirstChild("Head")  
-	local hum = char and char:FindFirstChildOfClass("Humanoid")  
-
-	if head and hum and hum.Health > 0 then  
-		local pos, onScreen = Camera:WorldToViewportPoint(head.Position)  
-
-		if onScreen then  
-			line.From = Vector2.new(pos.X, pos.Y)  
-			line.To = topCenter  
-			line.Color = rgbColor  
-			line.Visible = true  
-		else  
-			line.Visible = false  
-		end  
-	else  
-		line.Visible = false  
-	end  
-end
-
-end)
-
--- ================== TOGGLE ==================
 local Toggle = Tab:Toggle({
-Title = "ESP Line",
-Icon = "eye",
-Type = "Checkbox",
-Value = false,
-Callback = function(state)
-ENABLE = state
+    Title = "เปิด Aimbot",
+    Desc = "ต้องเลือกโหมดก่อน",
+    Default = false,
+    Callback = function(state)
 
-if not state then  
-        -- ปิดแล้วซ่อนเส้นทั้งหมดทันที  
-        for _, line in pairs(Lines) do  
-            line.Visible = false  
-        end  
-    end  
-end
+        if state and (#selectedModes == 0) then
+            warn("กรุณาเลือกโหมดก่อน")
+            Toggle:Set(false)
+            return
+        end
 
+        if not state then
+            if lockConnection then
+                lockConnection:Disconnect()
+                lockConnection = nil
+            end
+            currentTarget = nil
+            return
+        end
+
+        lockConnection = RunService.RenderStepped:Connect(function()
+
+            local partName = nil
+
+            if table.find(selectedModes,"ล็อคหัว") then
+                partName = "Head"
+            elseif table.find(selectedModes,"ล็อคตัว") then
+                partName = "HumanoidRootPart"
+            end
+
+            if not partName then return end
+
+            currentTarget = getClosestTarget(partName)
+
+            if currentTarget then
+                local newCFrame = CFrame.new(
+                    Camera.CFrame.Position,
+                    currentTarget.Position
+                )
+                Camera.CFrame = Camera.CFrame:Lerp(newCFrame, 0.2)
+            end
+
+        end)
+    end
 })
-เอาหัวข้อมันออกและส่งโค้ดเต็มมา
+
+--------------------------------------------------
+-- TOGGLE FOV
+--------------------------------------------------
+
+Tab:Toggle({
+    Title = "เปิดวง FOV",
+    Desc = "แสดง/ซ่อนวงกลางจอ",
+    Default = false,
+    Callback = function(state)
+        fovEnabled = state
+        circle.Visible = state
+    end
+})
