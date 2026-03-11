@@ -1,6 +1,6 @@
 if not game:IsLoaded() then game.Loaded:Wait() end
 
-local Players = game:GetService('Players')
+local Players = game:('')
 local Client = Players.LocalPlayer
 local g = getinfo or debug.getinfo
 local d = false
