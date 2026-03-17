@@ -15,7 +15,7 @@ for i, v in getgc(true) do
         local a = rawget(v, "Detected")
         local b = rawget(v, "Kill")
     
-        if typeof(a) == "function" and not x then
+        if typeof(a) == "function" and not 
             x = a
             
             local o; o = hookfunction(x, function(c, f, n)
