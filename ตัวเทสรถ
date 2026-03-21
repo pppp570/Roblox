@@ -1,0 +1,278 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Parent = player:WaitForChild("PlayerGui")
+gui.IgnoreGuiInset = true
+
+-- พื้นหลัง
+local bg = Instance.new("Frame")
+bg.Size = UDim2.new(1,0,1,0)
+bg.BackgroundTransparency = 1
+bg.Parent = gui
+
+-- โลโก้ (รูปภาพ)
+local title = Instance.new("ImageLabel")
+title.Size = UDim2.new(0,220,0,220)
+title.Position = UDim2.new(0.5,-110,0.08,0)
+title.BackgroundTransparency = 1
+title.Image = "rbxassetid://125250695222888"
+title.ScaleType = Enum.ScaleType.Fit
+title.Parent = bg
+
+-- แถบโหลด
+local barBG = Instance.new("Frame")
+barBG.Size = UDim2.new(0,300,0,8)
+barBG.Position = UDim2.new(0.5,-150,1,-40) -- ล่างสุด
+barBG.BackgroundColor3 = Color3.fromRGB(40,40,40)
+barBG.BorderSizePixel = 0
+barBG.Parent = bg
+
+Instance.new("UICorner",barBG).CornerRadius = UDim.new(1,0)
+
+local bar = Instance.new("Frame")
+bar.Size = UDim2.new(0,0,1,0)
+bar.BorderSizePixel = 0
+bar.BackgroundColor3 = Color3.fromRGB(0,255,170)
+bar.Parent = barBG
+
+Instance.new("UICorner",bar).CornerRadius = UDim.new(1,0)
+
+-- รายการโหลด
+local tasks = {
+"Initializing",
+"Creating folders",
+"Downloading assets",
+"Preparing interface",
+"Ready"
+}
+
+local labels = {}
+
+for i,v in ipairs(tasks) do
+
+	local y = 0.34 + (i*0.045)
+
+	local text = Instance.new("TextLabel")
+	text.Size = UDim2.new(0,280,0,22)
+	text.Position = UDim2.new(0.5,-140,y,0)
+	text.BackgroundTransparency = 1
+	text.Text = "○  "..v
+	text.Font = Enum.Font.GothamMedium
+	text.TextSize = 16
+	text.TextColor3 = Color3.fromRGB(170,170,170)
+	text.TextXAlignment = Enum.TextXAlignment.Left
+	text.Parent = bg
+	
+	table.insert(labels,text)
+
+	-- เส้นลอย
+	local line = Instance.new("Frame")
+	line.Size = UDim2.new(0,240,0,1)
+	line.Position = UDim2.new(-0.3,0,y + 0.028,0)
+	line.BackgroundColor3 = Color3.fromRGB(80,80,80)
+	line.BorderSizePixel = 0
+	line.Parent = bg
+
+	task.spawn(function()
+		while line.Parent do
+
+			line.Position = UDim2.new(-0.3,0,line.Position.Y.Scale,0)
+
+			local tween = TweenService:Create(
+				line,
+				TweenInfo.new(3 + math.random(),Enum.EasingStyle.Linear),
+				{Position = UDim2.new(1.2,0,line.Position.Y.Scale,0)}
+			)
+
+			tween:Play()
+			tween.Completed:Wait()
+
+		end
+	end)
+
+end
+
+-- โหลดทีละอัน
+for i,v in ipairs(labels) do
+
+	task.wait(0.8)
+
+	local tween = TweenService:Create(
+		v,
+		TweenInfo.new(0.35,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),
+		{TextColor3 = Color3.fromRGB(0,255,170)}
+	)
+
+	tween:Play()
+	tween.Completed:Wait()
+
+	v.Text = "✓  "..tasks[i]
+
+	local size = i/#labels
+
+	TweenService:Create(
+		bar,
+		TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.Out),
+		{Size = UDim2.new(size,0,1,0)}
+	):Play()
+
+end
+
+task.wait(0.7)
+
+-- เลื่อนออก
+TweenService:Create(
+	title,
+	TweenInfo.new(0.8,Enum.EasingStyle.Quart),
+	{Position = title.Position + UDim2.new(1,0,0,0)}
+):Play()
+
+for _,text in pairs(labels) do
+	TweenService:Create(
+		text,
+		TweenInfo.new(0.8,Enum.EasingStyle.Quart),
+		{Position = text.Position + UDim2.new(1,0,0,0)}
+	):Play()
+end
+
+task.wait(1)
+
+bg:Destroy()
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+local Window = WindUI:CreateWindow({
+    Title = "so Hub",
+    Icon = "menu", -- lucide icon. optional
+    Author = "สําหรับสายซิ่ง!!!", -- optional
+Size = UDim2.fromOffset(400, 200),
+User = {
+        Enabled = true,
+        Anonymous = false,
+        Callback = function()
+            print("clicked")
+        end,
+    },
+   
+})
+Window:ToggleTransparency(true)
+Window:Tag({
+    Title = "สายซิ่งห้ามพลาด",
+    Icon = "tag",
+    Color = Color3.fromHex("#30ff6a"),
+    Radius = 13, -- from 0 to 13
+})
+local Tab = Window:Tab({
+    Title = "manu",
+    Icon = "zap", -- optional
+    Locked = false,
+})
+local speed = 50 -- ค่าเริ่มต้น
+local enabled = false
+
+-- Input ใส่ความเร็ว
+local Input = Tab:Input({
+    Title = "Speed",
+    Value = "50",
+    InputIcon = "gauge",
+    Type = "Input",
+    Placeholder = "Enter speed...",
+    Callback = function(input)
+        local num = tonumber(input)
+        if num then
+            speed = num
+            print("Speed set to: "..speed)
+        end
+    end
+})
+
+-- Toggle เปิด/ปิด
+local Toggle = Tab:Toggle({
+    Title = "Speed Boost",
+    Icon = "zap", -- optional
+    Default = false,
+    Callback = function(state)
+        enabled = state
+        
+        if state then
+            print("เปิดความเร็ว")
+
+            local char = game.Players.LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                
+                local bv = Instance.new("BodyVelocity")
+                bv.Name = "SpeedVelocity"
+                bv.MaxForce = Vector3.new(100000,0,100000)
+                bv.Parent = char.HumanoidRootPart
+
+                task.spawn(function()
+                    while enabled and bv.Parent do
+                        local hrp = char.HumanoidRootPart
+                        bv.Velocity = hrp.CFrame.LookVector * speed
+                        task.wait()
+                    end
+                end)
+
+            end
+
+        else
+            print("ปิดความเร็ว")
+
+            local char = game.Players.LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                local old = char.HumanoidRootPart:FindFirstChild("SpeedVelocity")
+                if old then
+                    old:Destroy()
+                end
+            end
+        end
+    end
+})
+local Button = Tab:Button({
+    Title = "Discord",
+    Locked = false,
+    Callback = function()
+        local text = "https://discord.gg/zgEKm7Z9Xy"
+
+        if setclipboard then
+            setclipboard(text)
+            print("คัดลอกแล้ว")
+        else
+            warn("Executor ไม่รองรับ setclipboard")
+        end
+    end
+})
+
+local text = "Discord"
+
+task.spawn(function()
+    local offset = 0
+    while true do
+        offset = offset + 0.05
+        local rich = ""
+
+        for i = 1, #text do
+            local hue = (offset + (i * 0.1)) % 1
+            local color = Color3.fromHSV(hue,1,1)
+
+            rich = rich .. string.format(
+                "<font color='rgb(%d,%d,%d)'>%s</font>",
+                color.R*255,
+                color.G*255,
+                color.B*255,
+                text:sub(i,i)
+            )
+        end
+
+        Button:SetTitle(rich)
+        task.wait(0.05)
+    end
+end)
+
+-- ลอยเข้ามากลางจอ
+TweenService:Create(
+	main,
+	TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.Out),
+	{Position = UDim2.new(0.5,-210,0.5,-130)}
+):Play()
