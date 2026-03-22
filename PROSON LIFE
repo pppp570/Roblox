@@ -21,10 +21,10 @@ WindUI:AddTheme({
 
 local Window = WindUI:CreateWindow({
     Title = "So hub ",
-    Icon = "https://cdn.discordapp.com/attachments/1379297032568569909/1455275853742346514/109_20251220214919-removebg-preview_1.png?ex=695f5781&is=695e0601&hm=34022c77ca79d837fc8e21c41469e7f8085fdcea42745e1bae768b720165302f&",
+    Icon = "https://cdn.discordapp.com/attachments/1379297032568569909/1436623268349218836/93_20251108144625.png?ex=69c0f02e&is=69bf9eae&hm=e9ad24da4115a70dd9b4e4cde09599db881ef87d265505cb927ebb99b33b9f02&",
     Author = " Premium",
     Folder = "So hub X ",
-    Size = UDim2.fromOffset(580, 460),
+    Size = UDim2.fromOffset(400, 200),
     MinSize = Vector2.new(560, 350),
     MaxSize = Vector2.new(850, 560),
     Transparent = true,
@@ -39,34 +39,7 @@ User = {
         end,
     },
 })
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local TextChatService = game:GetService("TextChatService")
-local function OpenUIFromChat(msg)
-    msg = string.lower(msg)
-    if msg == "!ui" then
-        pcall(function()
-            if G2L and G2L["ButtonRezise_2"] then
-                G2L["ButtonRezise_2"].Visible = false
-            end
-        end)
-        -- เปิด WindUI
-        pcall(function()
-            Window:Open()
-        end)
-    end
-end
-LocalPlayer.Chatted:Connect(OpenUIFromChat)
-if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-    TextChatService.OnIncomingMessage = function(message)
-        if message.TextSource then
-            local plr = Players:GetPlayerByUserId(message.TextSource.UserId)
-            if plr == LocalPlayer then
-                OpenUIFromChat(message.Text)
-            end
-        end
-    end
-end
+
 Window:ToggleTransparency(true)
 Window:EditOpenButton({ Enabled = false })
 Window:Tag({
