@@ -1,0 +1,144 @@
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+local SystemEnabled = true
+local ShowFOV = true
+local ShowLine = true
+
+local FOV = Drawing.new("Circle")
+FOV.Visible = false
+FOV.Thickness = 2
+FOV.NumSides = 100
+FOV.Radius = 130
+FOV.Color = Color3.fromRGB(0,0,0)
+FOV.Filled = false
+
+
+local AimLine = Drawing.new("Line")
+AimLine.Visible = false
+AimLine.Thickness = 2
+AimLine.Color = Color3.new(1,1,1)
+
+
+local Diamond = Drawing.new("Quad")
+Diamond.Visible = false
+Diamond.Filled = true
+Diamond.Color = Color3.fromRGB(255,0,0)
+
+local function GetCenter()
+    local size = Camera.ViewportSize
+    return Vector2.new(size.X/2,size.Y/2)
+end
+
+-- FIND CLOSEST PLAYER
+local function GetClosestPlayer()
+
+    local closest
+    local distance = FOV.Radius
+
+    for _,player in pairs(Players:GetPlayers()) do
+
+        if player ~= LocalPlayer then
+
+            local character = player.Character
+            if not character then continue end
+
+            local head = character:FindFirstChild("Head")
+            local humanoid = character:FindFirstChild("Humanoid")
+
+            if not head or not humanoid or humanoid.Health <= 0 then
+                continue
+            end
+
+            local pos,visible = Camera:WorldToViewportPoint(head.Position)
+
+            if visible then
+
+                local magnitude =
+                (Vector2.new(pos.X,pos.Y) - GetCenter()).Magnitude
+
+                if magnitude < distance then
+                    distance = magnitude
+                    closest = head
+                end
+
+            end
+
+        end
+
+    end
+
+    return closest
+end
+
+RunService.RenderStepped:Connect(function()
+
+    if not SystemEnabled then
+        FOV.Visible = false
+        AimLine.Visible = false
+        Diamond.Visible = false
+        return
+    end
+
+    local center = GetCenter()
+
+    FOV.Position = center
+    FOV.Visible = ShowFOV
+
+    local target = GetClosestPlayer()
+
+    if target then
+
+        local pos,visible =
+        Camera:WorldToViewportPoint(target.Position)
+
+        if visible then
+
+            local vec = Vector2.new(pos.X,pos.Y)
+
+            if ShowLine then
+                AimLine.From = center
+                AimLine.To = vec
+                AimLine.Visible = true
+            else
+                AimLine.Visible = false
+            end
+
+            local size = 8
+
+            Diamond.PointA = vec + Vector2.new(0,-size)
+            Diamond.PointB = vec + Vector2.new(size,0)
+            Diamond.PointC = vec + Vector2.new(0,size)
+            Diamond.PointD = vec + Vector2.new(-size,0)
+
+            Diamond.Visible = true
+
+        end
+
+    else
+        AimLine.Visible = false
+        Diamond.Visible = false
+    end
+
+end)
+
+
+local old
+old = hookmetamethod(game,"__index",newcclosure(function(self,key)
+
+    if self:IsA("Mouse") and key == "Hit" and SystemEnabled then
+
+        local target = GetClosestPlayer()
+
+        if target then
+            return CFrame.new(target.Position)
+        end
+
+    end
+
+    return old(self,key)
+
+end))
