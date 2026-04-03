@@ -1,0 +1,537 @@
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+local Window = WindUI:CreateWindow({
+    Title = "So Hub",
+    Icon = "rbxassetid://85579915946231",
+    Author = "by .dev77777.",
+    Size = UDim2.fromOffset(400, 200),
+})
+
+Window:ToggleTransparency(true)
+
+Window:EditOpenButton({
+    Title = "SO HUB ",
+    Icon = "monitor",
+    CornerRadius = UDim.new(0,50),
+    StrokeThickness = 2,
+    Color = ColorSequence.new(
+        Color3.fromHex("CC00FF"),
+        Color3.fromHex("FF0000")
+    ),
+    OnlyMobile = false,
+    Enabled = true,
+    Draggable = true,
+})
+
+local Tab = Window:Tab({
+    Title = "Manu",
+    Icon = "book-open-text",
+    Locked = false,
+})
+
+Window:Tag({
+    Title = "ราชาอาชีวะ",
+    Icon = "crown",
+    Color = Color3.fromHex("#CC00FF"),
+    Radius = 13,
+})
+
+local Section = Tab:Section({ 
+    Title = "famr",
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+local folder = workspace["\224\184\129\224\185\136\224\184\173\224\184\170\224\184\163\224\185\137\224\184\178\224\184\135"]
+
+local targets = {90,89,87,88,57,55,56,54,53,47,49,94,50,51,3}
+
+local running = false
+
+local function startFarm()
+
+    task.spawn(function()
+
+        while running do
+
+            for _,i in ipairs(targets) do
+                if not running then break end
+
+                local obj = folder:GetChildren()[i]
+                if obj and obj:FindFirstChild("Hold E") then
+                    
+                    local prompt = obj["Hold E"]
+                    local target = prompt.Parent.Position + Vector3.new(0,3,0)
+
+                    while running and (hrp.Position - target).Magnitude > 3 do
+                        local dir = (target - hrp.Position).Unit
+                        hrp.CFrame = hrp.CFrame + dir * 3
+                        RunService.Heartbeat:Wait()
+                    end
+
+                    repeat
+                        if not running then break end
+                        prompt:InputHoldBegin()
+                        task.wait(0.7)
+                        prompt:InputHoldEnd()
+                        task.wait(0.7)
+                    until not prompt.Enabled
+
+                    task.wait(3)
+                end
+            end
+
+        end
+
+    end)
+
+end
+
+local Toggle = Tab:Toggle({
+    Title = "Auto Farm",
+    Icon = "pickaxe",
+    Default = false,
+    Callback = function(state)
+
+        running = state
+
+        if state then
+            
+            WindUI:Notify({
+                Title = "Auto farm on",
+                Content = "เปิดการทำงานแล้ว",
+                Duration = 3,
+                Icon = "check",
+            })
+
+            startFarm()
+
+        else
+
+            WindUI:Notify({
+                Title = "Auto farm off ",
+                Content = "ปิดการทำงานแล้ว",
+                Duration = 3,
+                Icon = "x",
+            })
+
+        end
+
+    end
+})
+
+
+
+local promptObjects = {
+    workspace["\224\184\163\224\185\137\224\184\178\224\184\153\224\184\139\224\185\136\224\184\173\224\184\161"]:GetChildren()[2]:GetChildren()[3]:GetChildren()[12],
+    workspace["\224\184\163\224\185\137\224\184\178\224\184\153\224\184\139\224\185\136\224\184\173\224\184\161"]:GetChildren()[2]:GetChildren()[3]:FindFirstChild("\224\184\139\224\185\136\224\184\173\224\184\161"),
+    workspace["\224\184\163\224\185\137\224\184\178\224\184\153\224\184\139\224\185\136\224\184\173\224\184\161"]:GetChildren()[2]:GetChildren()[3]:GetChildren()[13],
+}
+
+local ToggleState = false
+
+local Toggle = Tab:Toggle({
+    Title = "Auto Farm",
+    Icon = "package-open",
+    Default = true,
+    Callback = function(state)
+        ToggleState = state
+    end
+})
+
+local function flyToAndPress(obj)
+
+    if not obj then return end
+
+    local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt")
+    if not prompt then return end
+
+    local target = obj.Position + Vector3.new(0,3,0)
+
+    while (hrp.Position - target).Magnitude > 2 do
+        if not ToggleState then return end
+        local dir = (target - hrp.Position).Unit
+        hrp.CFrame = hrp.CFrame + dir * 3
+        RunService.Heartbeat:Wait()
+    end
+
+    local startTime = tick()
+
+    while tick() - startTime < 6 do
+        if not ToggleState then return end
+        prompt:InputHoldBegin()
+        RunService.Heartbeat:Wait()
+    end
+
+    prompt:InputHoldEnd()
+
+    local waitTime = 0
+
+    while waitTime < 4 do
+        if not ToggleState then return end
+        task.wait(0.1)
+        waitTime = waitTime + 0.1
+    end
+
+end
+
+spawn(function()
+    while true do
+        if ToggleState then
+            for _, obj in ipairs(promptObjects) do
+                flyToAndPress(obj)
+            end
+        else
+            task.wait(0.2)
+        end
+    end
+end)
+
+
+
+local LocalPlayer = Players.LocalPlayer
+local NoclipConnection = nil
+local Clip = true
+
+local function startNoclip()
+
+	if NoclipConnection then return end
+
+	Clip = false
+
+	NoclipConnection = RunService.Stepped:Connect(function()
+
+		local char = LocalPlayer.Character
+
+		if char and not Clip then
+			for _, v in pairs(char:GetDescendants()) do
+				if v:IsA("BasePart") then
+					v.CanCollide = false
+				end
+			end
+		end
+
+	end)
+
+end
+
+local function stopNoclip()
+
+	Clip = true
+
+	if NoclipConnection then
+		NoclipConnection:Disconnect()
+		NoclipConnection = nil
+	end
+
+	local char = LocalPlayer.Character
+
+	if char then
+		for _, v in pairs(char:GetDescendants()) do
+			if v:IsA("BasePart") then
+				v.CanCollide = true
+			end
+		end
+	end
+
+end
+
+local Toggle = Tab:Toggle({
+	Title = "Noclip",
+	Icon = "check-line",
+	Type = "Checkbox",
+	Value = false,
+	Callback = function(state)
+		if state then
+			startNoclip()
+		else
+			stopNoclip()
+		end
+	end
+})
+
+
+local Tab = Window:Tab({
+    Title = "Esp",
+    Icon = "eye",
+    Locked = false,
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+-- SETTINGS
+local ENABLE = false -- ❗ ให้ Toggle คุม
+local LINE_THICKNESS = 1.8
+local RGB_SPEED = 0.6
+
+local Lines = {}
+
+-- ================== CREATE / REMOVE LINE ==================
+local function createLine(player)
+	if player == LocalPlayer then return end
+
+	local line = Drawing.new("Line")
+	line.Visible = false
+	line.Thickness = LINE_THICKNESS
+	line.Transparency = 1
+
+	Lines[player] = line
+end
+
+local function removeLine(player)
+	if Lines[player] then
+		Lines[player]:Remove()
+		Lines[player] = nil
+	end
+end
+
+-- ================== PLAYER CHECK ==================
+for _, p in ipairs(Players:GetPlayers()) do
+	createLine(p)
+end
+
+Players.PlayerAdded:Connect(createLine)
+Players.PlayerRemoving:Connect(removeLine)
+
+-- ================== RENDER ==================
+RunService.RenderStepped:Connect(function()
+	if not ENABLE then
+		for _, line in pairs(Lines) do
+			line.Visible = false
+		end
+		return
+	end
+
+	local screenSize = Camera.ViewportSize
+	local topCenter = Vector2.new(screenSize.X / 2, 0)
+
+	local hue = (tick() * RGB_SPEED) % 1
+	local rgbColor = Color3.fromHSV(hue, 1, 1)
+
+	for player, line in pairs(Lines) do
+		local char = player.Character
+		local head = char and char:FindFirstChild("Head")
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+
+		if head and hum and hum.Health > 0 then
+			local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
+
+			if onScreen then
+				line.From = Vector2.new(pos.X, pos.Y)
+				line.To = topCenter
+				line.Color = rgbColor
+				line.Visible = true
+			else
+				line.Visible = false
+			end
+		else
+			line.Visible = false
+		end
+	end
+end)
+
+-- ================== TOGGLE ==================
+local Toggle = Tab:Toggle({
+    Title = "ESP Line",
+    Icon = "eye",
+    Type = "Checkbox",
+    Value = false,
+    Callback = function(state)
+        ENABLE = state
+
+        if not state then
+            -- ปิดแล้วซ่อนเส้นทั้งหมดทันที
+            for _, line in pairs(Lines) do
+                line.Visible = false
+            end
+        end
+    end
+})
+-- SERVICES
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+-- SETTINGS (คุมด้วย Toggle)
+local ENABLE = false
+local COLOR = Color3.new(1,1,1)
+local THICKNESS = 2
+local CORNER_SIZE = 6
+
+local Boxes = {}
+
+-- สร้างเส้นมุม 8 เส้น
+local function createCorner()
+	local lines = {}
+	for i = 1, 8 do
+		local l = Drawing.new("Line")
+		l.Visible = false
+		l.Color = COLOR
+		l.Thickness = THICKNESS
+		l.Transparency = 1
+		table.insert(lines, l)
+	end
+	return lines
+end
+
+local function removeESP(plr)
+	if Boxes[plr] then
+		for _, l in ipairs(Boxes[plr]) do
+			l:Remove()
+		end
+		Boxes[plr] = nil
+	end
+end
+
+-- Player handler
+for _, plr in ipairs(Players:GetPlayers()) do
+	if plr ~= LocalPlayer then
+		Boxes[plr] = createCorner()
+	end
+end
+
+Players.PlayerAdded:Connect(function(plr)
+	if plr ~= LocalPlayer then
+		Boxes[plr] = createCorner()
+	end
+end)
+
+Players.PlayerRemoving:Connect(removeESP)
+
+-- UPDATE
+RunService.RenderStepped:Connect(function()
+	if not ENABLE then
+		for _, box in pairs(Boxes) do
+			for _, l in ipairs(box) do
+				l.Visible = false
+			end
+		end
+		return
+	end
+
+	for plr, box in pairs(Boxes) do
+		local char = plr.Character
+		local hum = char and char:FindFirstChild("Humanoid")
+
+		if char and hum and hum.Health > 0 then
+			local cf, size = char:GetBoundingBox()
+
+			local points = {}
+			for x = -1, 1, 2 do
+				for y = -1, 1, 2 do
+					for z = -1, 1, 2 do
+						local world = cf * Vector3.new(
+							size.X/2 * x,
+							size.Y/2 * y,
+							size.Z/2 * z
+						)
+						local screen, vis = Camera:WorldToViewportPoint(world)
+						if not vis then
+							points = nil
+							break
+						end
+						table.insert(points, Vector2.new(screen.X, screen.Y))
+					end
+				end
+			end
+
+			if points then
+				local minX, minY = math.huge, math.huge
+				local maxX, maxY = -math.huge, -math.huge
+
+				for _, p in ipairs(points) do
+					minX = math.min(minX, p.X)
+					minY = math.min(minY, p.Y)
+					maxX = math.max(maxX, p.X)
+					maxY = math.max(maxY, p.Y)
+				end
+
+				local tl = Vector2.new(minX, minY)
+				local tr = Vector2.new(maxX, minY)
+				local bl = Vector2.new(minX, maxY)
+				local br = Vector2.new(maxX, maxY)
+
+				local lines = {
+					{tl, tl + Vector2.new(CORNER_SIZE,0)},
+					{tl, tl + Vector2.new(0,CORNER_SIZE)},
+					{tr, tr + Vector2.new(-CORNER_SIZE,0)},
+					{tr, tr + Vector2.new(0,CORNER_SIZE)},
+					{bl, bl + Vector2.new(CORNER_SIZE,0)},
+					{bl, bl + Vector2.new(0,-CORNER_SIZE)},
+					{br, br + Vector2.new(-CORNER_SIZE,0)},
+					{br, br + Vector2.new(0,-CORNER_SIZE)},
+				}
+
+				for i, l in ipairs(box) do
+					l.From = lines[i][1]
+					l.To = lines[i][2]
+					l.Visible = true
+				end
+			else
+				for _, l in ipairs(box) do
+					l.Visible = false
+				end
+			end
+		else
+			for _, l in ipairs(box) do
+				l.Visible = false
+			end
+		end
+	end
+end)
+
+----------------------------------------------------------------
+-- TOGGLE (คุมการเปิด/ปิด)
+----------------------------------------------------------------
+local Toggle = Tab:Toggle({
+    Title = "ESP box",
+    Icon = "eye",
+    Type = "Checkbox",
+    Value = false,
+    Callback = function(state)
+        ENABLE = state
+        print("Corner ESP :", state)
+    end
+})
+-------------------------------------------------
+-- FPS TAG
+-------------------------------------------------
+
+local FPSTag =
+    Window:Tag(
+    {
+        Title = "FPS: 0",
+        Icon = "cpu",
+        Color = Color3.fromHex("#FF0000"),
+        Radius = 13
+    }
+)
+
+local lastTime = tick()
+local frameCount = 0
+
+RunService.RenderStepped:Connect(function()
+
+    frameCount = frameCount + 1
+    local currentTime = tick()
+
+    if currentTime - lastTime >= 1 then
+
+        local fps = frameCount / (currentTime - lastTime)
+        FPSTag:SetTitle("FPS: " .. math.floor(fps))
+
+        frameCount = 0
+        lastTime = currentTime
+
+    end
+
+end)
