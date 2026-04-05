@@ -1,0 +1,499 @@
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+WindUI:AddTheme({
+Name = "Purple Duo",
+
+Accent = Color3.fromHex("#a855f7"), -- ม่วงหลัก  
+Background = Color3.fromHex("#0a0a0a"), -- พื้นหลังดำ  
+
+WindowBackground = Color3.fromHex("#0f0f0f"), -- สีหน้าต่างหลัก  
+WindowShadow = Color3.fromHex("#000000"),  
+
+Button = Color3.fromHex("#7e22ce"), -- ปุ่มม่วงเข้ม  
+Hover = Color3.fromHex("#9333ea"),  
+
+Text = Color3.fromHex("#e9d5ff"), -- ตัวหนังสือม่วงอ่อน  
+Placeholder = Color3.fromHex("#a855f7"),  
+Icon = Color3.fromHex("#c084fc"),
+
+})
+
+local Window = WindUI:CreateWindow({
+Title = "So hub",
+Icon = "rbxassetid://85579915946231",
+Author = "",
+Folder = "So hub X",
+
+Size = UDim2.fromOffset(400, 200),  
+MinSize = Vector2.new(560, 350),  
+MaxSize = Vector2.new(850, 560),  
+
+Transparent = false,  
+Theme = "Purple Duo",  
+Resizable = true,  
+SideBarWidth = 200,
+
+})
+Window:ToggleTransparency(true)
+local Section = Window:Section({
+Title = "Free fire",
+Icon = "rbxassetid://85579915946231",
+Opened = true,
+})
+local Tab = Window:Tab({
+Title = "Manu",
+Icon = "book-text", -- optional
+Locked = false,
+})
+-- free fire silent aim
+
+getgenv().slientaimbyx2nyx = false
+getgenv().FOVSize = 400
+
+local L = {
+P = game:GetService("Players"),
+RS = game:GetService("ReplicatedStorage"),
+RunService = game:GetService("RunService"),
+Cam = workspace.CurrentCamera
+}
+
+L.LP = L.P.LocalPlayer
+L.Lib = require(L.RS:WaitForChild("WeaponsSystem"):WaitForChild("Libraries"):WaitForChild("BaseWeapon"))
+
+-- FOV Circle
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Color = Color3.fromRGB(255,255,255)
+FOVCircle.Thickness = 1
+FOVCircle.NumSides = 64
+FOVCircle.Filled = false
+FOVCircle.Visible = false
+
+-- Snap Line
+local SnapLine = Drawing.new("Line")
+SnapLine.Color = Color3.fromRGB(255,0,0)
+SnapLine.Thickness = 1.5
+SnapLine.Visible = false
+
+-- หาเป้าหมาย
+L.getT = function()
+L.res, L.d = nil, getgenv().FOVSize
+for _,v in pairs(L.P:GetPlayers()) do
+if v ~= L.LP and v.Character and v.Character:FindFirstChild("Head") then
+local h = v.Character:FindFirstChildOfClass("Humanoid")
+if h and h.Health > 0 then
+local p,vv = L.Cam:WorldToViewportPoint(v.Character.Head.Position)
+local m = (Vector2.new(p.X,p.Y) - (L.Cam.ViewportSize/2)).Magnitude
+if vv and m < L.d then
+L.res = v.Character.Head
+L.d = m
+end
+end
+end
+end
+return L.res
+end
+
+-- Render
+L.RunService.RenderStepped:Connect(function()
+
+FOVCircle.Position = Vector2.new(L.Cam.ViewportSize.X/2, L.Cam.ViewportSize.Y/2)  
+FOVCircle.Radius = getgenv().FOVSize  
+FOVCircle.Visible = getgenv().slientaimbyx2nyx  
+
+local target = L.getT()  
+
+if getgenv().slientaimbyx2nyx and target then  
+    local screenPos,onScreen = L.Cam:WorldToViewportPoint(target.Position)  
+
+    if onScreen then  
+        SnapLine.From = Vector2.new(L.Cam.ViewportSize.X/2,L.Cam.ViewportSize.Y/2)  
+        SnapLine.To = Vector2.new(screenPos.X,screenPos.Y)  
+        SnapLine.Visible = true  
+    else  
+        SnapLine.Visible = false  
+    end  
+else  
+    SnapLine.Visible = false  
+end
+
+end)
+
+-- hook ยิง
+L.old = L.Lib.fire
+L.Lib.fire = function(self,origin,dir,charge)
+local target = getgenv().slientaimbyx2nyx and L.getT() or nil
+local newDir = target and (target.Position-origin).Unit or dir
+return L.old(self,origin,newDir,charge)
+end
+
+-- =================
+-- WINDUI
+-- =================
+
+local Toggle = Tab:Toggle({
+Title = "Silent Aim",
+Icon = "crosshair", -- optional
+Default = false,
+Callback = function(state)
+
+getgenv().slientaimbyx2nyx = state  
+
+    if state then  
+        print("Silent Aim ON")  
+    else  
+        print("Silent Aim OFF")  
+    end  
+
+end
+
+})
+
+local Slider = Tab:Slider({
+Title = "FOV Size",
+Step = 10,
+Value = {
+Min = 50,
+Max = 1000,
+Default = 400,
+},
+
+Callback = function(value)  
+
+    getgenv().FOVSize = value  
+
+end
+
+})
+
+local Section = Tab:Section({
+Title = "Player",
+})
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local humanoid = char:WaitForChild("Humanoid")
+local root = char:WaitForChild("HumanoidRootPart")
+
+-- เพิ่มตรงนี้เพื่ออัปเดตตอนเกิดใหม่
+player.CharacterAdded:Connect(function(c)
+char = c
+humanoid = char:WaitForChild("Humanoid")
+root = char:WaitForChild("HumanoidRootPart")
+end)
+
+local enabled = false
+local connection
+local holdY = nil
+local jumpConnection
+local noclipConnection
+
+local Toggle = Tab:Toggle({
+Title = "Jump Float",
+Icon = "feather",
+Default = false,
+
+Callback = function(state)
+enabled = state
+
+if state then  
+      
+    -- ลอยไม่ตก  
+    connection = RunService.RenderStepped:Connect(function()  
+        if not enabled then return end  
+
+        local vel = root.Velocity  
+
+        if vel.Y > 0 then  
+            holdY = nil  
+        end  
+
+        if vel.Y < 0 and not holdY then  
+            holdY = root.Position.Y  
+        end  
+
+        if holdY then  
+            local speed = 10 -- ปรับความเร็วตรงนี้  
+            root.Velocity = Vector3.new(vel.X, 0, vel.Z)  
+            root.CFrame = CFrame.new(root.Position.X, holdY, root.Position.Z)  
+        end  
+    end)  
+
+    -- กระโดดกลางอากาศ  
+    jumpConnection = UIS.JumpRequest:Connect(function()  
+        if enabled then  
+            holdY = nil  
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)  
+        end  
+    end)  
+
+    -- ทะลุกำแพง  
+    noclipConnection = RunService.Stepped:Connect(function()  
+        if enabled then  
+            for _,v in pairs(char:GetDescendants()) do  
+                if v:IsA("BasePart") then  
+                    v.CanCollide = false  
+                end  
+            end  
+        end  
+    end)  
+
+else  
+    if connection then  
+        connection:Disconnect()  
+        connection = nil  
+    end  
+
+    if jumpConnection then  
+        jumpConnection:Disconnect()  
+        jumpConnection = nil  
+    end  
+
+    if noclipConnection then  
+        noclipConnection:Disconnect()  
+        noclipConnection = nil  
+    end  
+
+    holdY = nil  
+end
+
+end
+})
+
+Toggle:Set(false)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local flying = false
+local bg
+local bv
+local flyConn
+local noclipConn
+
+local speed = 60
+
+local function startFly()
+local char = player.Character or player.CharacterAdded:Wait()
+local root = char:WaitForChild("HumanoidRootPart")
+local hum = char:WaitForChild("Humanoid")
+
+bg = Instance.new("BodyGyro")
+bg.P = 9e4
+bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
+bg.CFrame = root.CFrame
+bg.Parent = root
+
+bv = Instance.new("BodyVelocity")
+bv.MaxForce = Vector3.new(9e9,9e9,9e9)
+bv.Velocity = Vector3.new()
+bv.Parent = root
+
+flyConn = RunService.RenderStepped:Connect(function()
+if not flying then return end
+
+local cam = workspace.CurrentCamera  
+local moveDir = hum.MoveDirection  
+
+if moveDir.Magnitude > 0 then  
+    bv.Velocity = moveDir * speed  
+else  
+    bv.Velocity = Vector3.new()  
+end  
+
+bg.CFrame = cam.CFrame
+
+end)
+
+noclipConn = RunService.Stepped:Connect(function()
+if player.Character then
+for _,v in pairs(player.Character:GetDescendants()) do
+if v:IsA("BasePart") then
+v.CanCollide = false
+end
+end
+end
+end)
+
+end
+
+local function stopFly()
+if flyConn then
+flyConn:Disconnect()
+flyConn = nil
+end
+
+if noclipConn then
+noclipConn:Disconnect()
+noclipConn = nil
+end
+
+if bg then
+bg:Destroy()
+bg = nil
+end
+
+if bv then
+bv:Destroy()
+bv = nil
+end
+
+end
+
+local Toggle = Tab:Toggle({
+Title = "Fly",
+Icon = "plane",
+Default = false,
+
+Callback = function(state)
+flying = state
+
+if state then  
+    startFly()  
+else  
+    stopFly()  
+end
+
+end
+
+})
+
+Toggle:Set(false)
+
+local Tab = Window:Tab({
+Title = "Esp",
+Icon = "view", -- optional
+Locked = false,
+})
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+local ESPEnabled = false
+local ESPObjects = {}
+
+-- สี
+local lineColor = Color3.fromRGB(255,255,255) -- เส้นสีขาว
+local boxOutline = Color3.fromRGB(255,255,255) -- ขอบสีขาว
+local tone1 = Color3.fromRGB(170,0,255) -- ทูโทนสีที่1
+local tone2 = Color3.fromRGB(80,0,120) -- ทูโทนสีที่2
+
+local function CreateESP(player)
+
+if player == LocalPlayer then return end  
+
+local line = Drawing.new("Line")  
+line.Thickness = 2  
+line.Color = lineColor  
+line.Visible = false  
+
+local box = Drawing.new("Square")  
+box.Thickness = 2  
+box.Color = boxOutline  
+box.Filled = false  
+box.Visible = false  
+
+local fill = Drawing.new("Square")  
+fill.Thickness = 0  
+fill.Color = tone1  
+fill.Filled = true  
+fill.Transparency = 0.5  
+fill.Visible = false  
+
+local fill2 = Drawing.new("Square")  
+fill2.Thickness = 0  
+fill2.Color = tone2  
+fill2.Filled = true  
+fill2.Transparency = 0.5  
+fill2.Visible = false  
+
+ESPObjects[player] = {line,box,fill,fill2}  
+
+RunService.RenderStepped:Connect(function()  
+
+    if not ESPEnabled then  
+        line.Visible = false  
+        box.Visible = false  
+        fill.Visible = false  
+        fill2.Visible = false  
+        return  
+    end  
+
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Head") then  
+
+        local root = player.Character.HumanoidRootPart  
+        local head = player.Character.Head  
+
+        local rootPos, visible = Camera:WorldToViewportPoint(root.Position)  
+        local headPos = Camera:WorldToViewportPoint(head.Position)  
+
+        if visible then  
+
+            local distance = (Camera.CFrame.Position - root.Position).Magnitude  
+            local size = math.clamp(3000 / distance,20,300)  
+
+            local width = size/2  
+            local height = size  
+
+            local x = rootPos.X - width/2  
+            local y = rootPos.Y - height/2  
+
+            -- กล่อง  
+            box.Size = Vector2.new(width,height)  
+            box.Position = Vector2.new(x,y)  
+            box.Visible = true  
+
+            -- ทูโทนบน  
+            fill.Size = Vector2.new(width,height/2)  
+            fill.Position = Vector2.new(x,y)  
+            fill.Visible = true  
+
+            -- ทูโทนล่าง  
+            fill2.Size = Vector2.new(width,height/2)  
+            fill2.Position = Vector2.new(x,y + height/2)  
+            fill2.Visible = true  
+
+            -- เส้นไปหัว  
+            line.From = Vector2.new(Camera.ViewportSize.X/2,0)  
+            line.To = Vector2.new(headPos.X,headPos.Y)  
+            line.Visible = true  
+
+        else  
+            line.Visible = false  
+            box.Visible = false  
+            fill.Visible = false  
+            fill2.Visible = false  
+        end  
+
+    else  
+        line.Visible = false  
+        box.Visible = false  
+        fill.Visible = false  
+        fill2.Visible = false  
+    end  
+
+end)
+
+end
+
+for _,v in pairs(Players:GetPlayers()) do
+CreateESP(v)
+end
+
+Players.PlayerAdded:Connect(CreateESP)
+
+-- Toggle
+local Toggle = Tab:Toggle({
+Title = "ESP Player",
+Icon = "eye",
+Default = false,
+Callback = function(state)
+ESPEnabled = state
+end
+})
+
+Toggle:Set(false)
