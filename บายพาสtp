@@ -1,0 +1,23 @@
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))() 
+local Window = WindUI:CreateWindow({
+    Title = "so Hub",
+    Icon = "door-open", -- lucide icon. optional
+    Author = "by .ftgs and .ftgs", -- optional
+  Size = UDim2.fromOffset(400, 200),
+})
+local Tab = Window:Tab({
+    Title = "tp",
+    Icon = "bird", -- optional
+    Locked = false,
+})
+local Button = Tab:Button({
+    Title = "บายพาส",
+    Desc = "Test Button",
+    Locked = false,
+    Callback = function()
+        for i = 1, 3 do
+game.Players.LocalPlayer.Character.Humanoid.Sit = true; task.wait(0.5)
+game.Players.LocalPlayer.Character.Humanoid.Jump = true
+end
+    end
+})
