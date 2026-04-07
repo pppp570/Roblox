@@ -1,0 +1,426 @@
+local RunService = game:GetService("RunService")
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+repeat task.wait() until game.Players.LocalPlayer and game.Players.LocalPlayer.PlayerGui
+local function c() return getgenv() end
+local Service = setmetatable({},{__index = function(self, name) return game:GetService(name) end})
+
+local TweenService = Service.TweenService
+local Players = Service.Players
+local HttpService = Service.HttpService
+local UserInputService = Service.UserInputService
+local ReplicatedStorage = Service.ReplicatedStorage
+
+local Client = Players.LocalPlayer
+local Character = Client.Character or Client.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+local PlayerGui = Client:WaitForChild("PlayerGui")
+local Backpack = Client:WaitForChild("Backpack")
+
+Client.CharacterAdded:Connect(function(newCharacter)
+    Character = newCharacter
+    Humanoid  = Character:WaitForChild("Humanoid")
+    RootPart  = Character:WaitForChild("HumanoidRootPart")
+    Backpack  = Client:WaitForChild("Backpack")
+end)
+
+local Job = workspace:FindFirstChild('Job')
+local JobC = ReplicatedStorage:FindFirstChild('Job')
+
+local Config_Manager = loadstring(game:HttpGet("https://raw.githubusercontent.com/Yenixs/ToolScript/refs/heads/main/ConfigManager.luau"))()('Blockspin_PIGHUBEDITION',c())
+Config_Manager.SC()
+
+local func = {}
+
+task.spawn(pcall,function()
+    while task.wait(0.1) do
+        if c().AutoFarmMoney then
+            if not RootPart:FindFirstChild("BodyClip") then
+                local Noclip         = Instance.new("BodyVelocity")
+                Noclip.Name          = "BodyClip"
+                Noclip.Parent        = RootPart
+                Noclip.MaxForce      = Vector3.new(1000000, 1000000, 1000000)
+                Noclip.Velocity      = Vector3.new(0, 0, 0)
+            end
+        else
+            if RootPart:FindFirstChild('BodyClip') then
+                RootPart:FindFirstChild('BodyClip'):Destroy()
+            end
+        end
+    end
+end)
+
+local function GetDistanceRoot(Objective)
+    if typeof(Objective) == "Instance" then
+        if Objective:IsA("BasePart") then
+            return (Objective.Position - RootPart.Position).Magnitude
+        else
+            return 0
+        end
+    elseif typeof(Objective) == "Vector3" then
+        return (Objective - RootPart.Position).Magnitude
+    elseif typeof(Objective) == "CFrame" then
+        return (Objective.Position - RootPart.Position).Magnitude
+    end
+    return 0
+end
+
+local function InRaya(Path, condition, Base_position, mode, range)
+    local results = {}
+    local maxRange = math.huge
+    local sortMode = "nearest"
+
+    if type(mode) == "number" then
+        maxRange = mode
+        sortMode = "nearest"
+    elseif mode == "farthest" then
+        sortMode = "farthest"
+    elseif mode == "value" then
+        sortMode = "value"
+    elseif type(range) == "number" then
+        maxRange = range
+    end
+
+    for _, Object in pairs(Path) do
+        if condition(Object) then
+            if sortMode == "value" then
+                local diff = math.abs(Object.price - Base_position)
+                table.insert(results, { obj = Object, dist = diff })
+            else
+                local Distance = (Object:GetPivot().Position - Base_position).Magnitude
+                if Distance <= maxRange then
+                    table.insert(results, { obj = Object, dist = Distance })
+                end
+            end
+        end
+    end
+
+    if #results == 0 then return nil end
+    table.sort(results, function(a, b) return a.dist < b.dist end)
+    return results[1].obj
+end
+
+local PathfindingService = game:GetService("PathfindingService")
+
+local function tp(target)
+    if not Character or not RootPart or Humanoid.Health <= 0 then return end
+    if Humanoid.Sit then Humanoid.Sit = false end
+
+    local targetPos = typeof(target) == "CFrame" and target.Position or target
+    if typeof(targetPos) ~= "Vector3" then return end
+
+    local path = PathfindingService:CreatePath({
+        AgentHeight = 5,
+        AgentRadius = 3,
+        AgentCanJump = true,
+        WaypointSpacing = 6 
+    })
+
+    local success, err = pcall(function()
+        path:ComputeAsync(RootPart.Position, targetPos)
+    end)
+
+    if success and path.Status == Enum.PathStatus.Success then
+        local waypoints = path:GetWaypoints()
+        
+        for i, waypoint in ipairs(waypoints) do
+            if not c().AutoFarmMoney or Humanoid.Health <= 0 then break end
+
+            local dist = (RootPart.Position - waypoint.Position).Magnitude
+            local speed = 60 
+            local tweenTime = dist / speed
+
+            local tween = TweenService:Create(RootPart, TweenInfo.new(tweenTime, Enum.EasingStyle.Linear), {
+                CFrame = CFrame.new(waypoint.Position)
+            })
+
+            if waypoint.Action == Enum.PathWaypointAction.Jump then
+                Humanoid.Jump = true
+            end
+
+            tween:Play()
+            tween.Completed:Wait() 
+        end
+    else
+        local dist = (RootPart.Position - targetPos).Magnitude
+        local tween = TweenService:Create(RootPart, TweenInfo.new(dist/60, Enum.EasingStyle.Linear), {
+            CFrame = CFrame.new(targetPos)
+        })
+        tween:Play()
+        tween.Completed:Wait()
+    end
+end
+
+local function WaitMiniGame(MiniGameUI)
+    local t = 0
+    repeat task.wait(0.1) t = t + 0.1
+    until (MiniGameUI and MiniGameUI.Enabled) or t >= 5 or not c().AutoFarmMoney
+
+    if MiniGameUI and MiniGameUI.Enabled then
+        if c().SelectJob == "ก่อสร้าง" then
+            JobC:FindFirstChild("Construction"):FindFirstChild("MiniGameDone"):FireServer(true, 100)
+        elseif c().SelectJob == "ซ่อมรถ" then
+            JobC:FindFirstChild("mechanic"):FindFirstChild("MiniGameDone"):FireServer(true, 100)
+        elseif c().SelectJob == "ทําความสะอาด" then
+            JobC:FindFirstChild("cleaning"):FindFirstChild("MiniGameDone"):FireServer(true, 100)
+        end
+        MiniGameUI.Enabled = false
+    end
+end
+
+function func.AutoFarmMoney()
+    while task.wait() do
+        xpcall(function()
+            if not c().AutoFarmMoney then return end
+            if not c().SelectJob then return end
+
+            local MiniGameUI = PlayerGui:FindFirstChild('MiniGameUI')
+
+            if c().SelectJob == "ซ่อมรถ" then
+                local Jobs = Job:FindFirstChild("\224\184\139\224\185\136\224\184\173\224\184\161\224\184\163\224\184\150")
+                if not Jobs then return end
+
+                local JobNpc = Jobs:FindFirstChild('NPC')
+                if not JobNpc then return end
+
+                local NpcModel = JobNpc:FindFirstChild('JobNPC')
+                if not NpcModel then return end
+
+                local RegisterJob = ReplicatedStorage:WaitForChild("Job"):WaitForChild("mechanic"):WaitForChild("Hire"):InvokeServer()
+                if typeof(RegisterJob) ~= "boolean" then return end
+
+                if RegisterJob then
+                    if GetDistanceRoot(NpcModel:FindFirstChild('HumanoidRootPart')) > 5 then
+                        tp(NpcModel:FindFirstChild('HumanoidRootPart').CFrame)
+                    end
+                    return
+                end
+
+                local FolderFarm = Jobs:FindFirstChild("\224\184\135\224\184\178\224\184\153")
+                if not FolderFarm then return end
+
+                for i,v in pairs(FolderFarm:GetChildren()) do
+                    for _,x in pairs(v:GetChildren()) do
+                        local Prompt = x:FindFirstChild('Prompt')
+                        if Prompt and Prompt:FindFirstChild('ProximityPrompt') then
+                            local PP = Prompt:FindFirstChild('ProximityPrompt')
+                            if not PP.Enabled then continue end
+
+                            if GetDistanceRoot(Prompt.Position) > 3 then
+                                tp(Prompt.Position)
+                                return
+                            end
+
+                            fireproximityprompt(PP)
+                            WaitMiniGame(MiniGameUI)
+                            return
+                        end
+                    end
+                end
+            end
+
+            if c().SelectJob == "ก่อสร้าง" then
+                local Jobs = Job:FindFirstChild("งานก่อสร้าง")
+                if not Jobs then return end
+
+                local JobNpc = Jobs:FindFirstChild('NPC')
+                if not JobNpc then return end
+
+                local NpcModel = JobNpc:FindFirstChild('JobNPC')
+                if not NpcModel then return end
+
+                local RegisterJob = ReplicatedStorage:FindFirstChild("Job"):FindFirstChild("Construction"):FindFirstChild("Hire"):InvokeServer()
+                if typeof(RegisterJob) ~= "boolean" then return end
+
+                if RegisterJob then
+                    if GetDistanceRoot(NpcModel:FindFirstChild('HumanoidRootPart')) > 5 then
+                        tp(NpcModel:FindFirstChild('HumanoidRootPart').CFrame)
+                    end
+                    return
+                end
+
+                local WorkFolder = Jobs:FindFirstChild('งาน')
+                if not WorkFolder then return end
+
+                for i,v in pairs(WorkFolder:GetChildren()) do
+                    for _,Engineer in pairs(v:GetChildren()) do
+                        local Prompt = Engineer:FindFirstChild('Prompt')
+                        if Prompt and Prompt:FindFirstChild('ProximityPrompt') then
+                            local PP = Prompt:FindFirstChild('ProximityPrompt')
+                            if not PP.Enabled then continue end
+
+                            if GetDistanceRoot(Prompt.Position) > 3 then
+                                tp(Prompt.Position)
+                                return
+                            end
+
+                            fireproximityprompt(PP)
+                            WaitMiniGame(MiniGameUI)
+                            return
+                        end
+                    end
+                end
+            end
+
+            if c().SelectJob == "ทําความสะอาด" then
+                local Jobs = Job:FindFirstChild('ทำความสะอาด')
+                if not Jobs then return end
+
+                local Target = InRaya(Jobs:GetChildren(), function(a)
+                    return a.Name == "DirtySpot"
+                        and a:FindFirstChild('Dirty')
+                        and a:FindFirstChild('Dirty'):FindFirstChild('Decal')
+                        and a:FindFirstChild('Dirty'):FindFirstChild('Decal').Transparency ~= 1
+                end, RootPart.Position)
+
+                if not Target then return end
+
+                if GetDistanceRoot(Target:GetPivot().Position) > 5 then
+                    tp(Target:GetPivot().Position)
+                    return
+                end
+
+                fireproximityprompt(Target.Prompt.ProximityPrompt)
+                WaitMiniGame(MiniGameUI)
+            end
+
+        end, warn)
+    end
+end
+
+JobC:FindFirstChild("Construction"):FindFirstChild('MiniGame').OnClientEvent:Connect(function(a, v)
+    if c().AutoFarmMoney then
+        JobC:FindFirstChild("Construction"):FindFirstChild("MiniGameDone"):FireServer(a, v)
+    end
+end)
+
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+local Window = WindUI:CreateWindow({
+    Title = "So hub | RachaAchewa",
+    Icon = "github",
+    Author = "Ultimate Packgate",
+    Folder = "TairaAoi",
+    Size = UDim2.fromOffset(400, 400),
+    Transparent = true,
+    Theme = "Dark",
+    Resizable = true,
+})
+
+UserInputService.InputBegan:Connect(function(i, gp)
+    if not gp and i.KeyCode == Enum.KeyCode.T then
+        Window:Toggle()
+    end
+end)
+
+local Tabs = {
+    General = Window:Tab({Title = "General", Icon = "library"}),
+}
+
+Tabs.General:Select()
+
+local function Section(Tab, Text)
+    return Tab:Section({
+        Title = Text,
+        Box = false,
+        TextSize = 17,
+        Opened = true,
+    })
+end
+
+local function Tg(def, Tab, Description, Title, Keys, Callback)
+    local taskThread
+    local toggle = Tab:Toggle({
+        Title = Title,
+        Desc = Description,
+        Value = c()[Keys] or def,
+        Callback = function(state)
+            Config_Manager.S()[Keys] = state
+            c()[Keys] = state
+            if Callback and typeof(Callback) == "function" then
+                Callback(state)
+            end
+            if not state then
+                if taskThread then
+                    task.cancel(taskThread)
+                    taskThread = nil
+                end
+            end
+            if state then
+                if func[Keys] then
+                    taskThread = task.spawn(function() func[Keys]() end)
+                end
+            end
+            Config_Manager.SG()
+        end
+    })
+    if toggle then toggle.Callback(c()[Keys]) end
+    return toggle
+end
+
+local function Dropdown(Tab, Title, Keys, Values, Multi)
+    local dropdown = Tab:Dropdown({
+        Title = Title,
+        Values = Values or {},
+        Multi = Multi or false,
+        AllowNone = false,
+        Value = c()[Keys] or Values[1],
+        Callback = function(option)
+            Config_Manager.S()[Keys] = option
+            c()[Keys] = option
+            Config_Manager.SG()
+        end
+    })
+    if dropdown and dropdown.Callback then
+        dropdown.Callback(c()[Keys] or (Multi and {} or Values[1]))
+    end
+    return dropdown
+end
+
+do
+    local Main = Section(Tabs.General, "Main")
+    Dropdown(Main, "Select Job", "SelectJob", {"ซ่อมรถ","ก่อสร้าง","ทําความสะอาด"}, false)
+
+    local NoclipFlag
+    Tg(false, Main, "Automatic to farm money.", "Auto Farm", "AutoFarmMoney", function(a)
+        if a then
+            NoclipFlag = RunService.Stepped:Connect(function()
+                for i,v in pairs(Character:GetDescendants()) do
+                    if v:IsA('BasePart') then
+                        v.CanCollide = false
+                    end
+                end
+            end)
+        else
+            if NoclipFlag then
+                NoclipFlag:Disconnect()
+            end
+        end
+    end)
+end
+
+local SetupTab = Window:Tab({
+    Title = "Set up",
+    Icon = "banknote",
+    Locked = false,
+})
+
+SetupTab:Button({
+    Title = "Collect Money",
+    Desc = "รับเงินก่อสร้าง",
+    Locked = false,
+    Icon = "hand-coins",
+    Callback = function()
+        game:GetService("ReplicatedStorage"):WaitForChild("Job"):WaitForChild("Construction"):WaitForChild("Collect"):InvokeServer()
+    end
+})
+
+SetupTab:Button({
+    Title = "Collect Money",
+    Desc = "รับเงินซ่อมรถ",
+    Locked = false,
+    Icon = "coins",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Job.mechanic.Collect:InvokeServer()
+    end
+})
