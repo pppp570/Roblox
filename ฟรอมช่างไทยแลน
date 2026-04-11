@@ -1,0 +1,197 @@
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+WindUI:AddTheme({
+Name = "Purple Duo",
+
+Accent = Color3.fromHex("#66FFFF"), -- ม่วงหลัก  
+Background = Color3.fromHex("#FFFFFF"), -- พื้นหลังดำ  
+
+WindowBackground = Color3.fromHex("#FFFFFF"), -- สีหน้าต่างหลัก  
+WindowShadow = Color3.fromHex("#000000"),  
+
+Button = Color3.fromHex("#33FFFF"), -- ปุ่มม่วงเข้ม  
+Hover = Color3.fromHex("#9333ea"),  
+
+Text = Color3.fromHex("#000000"), -- ตัวหนังสือม่วงอ่อน  
+Placeholder = Color3.fromHex("#a855f7"),  
+Icon = Color3.fromHex("#66FFFF"),
+
+})
+
+local Window = WindUI:CreateWindow({
+Title = "So hub",
+Icon = "chart-no-axes-combined",
+Author = "",
+Folder = "So hub X",
+
+Size = UDim2.fromOffset(400, 200),  
+MinSize = Vector2.new(560, 350),  
+MaxSize = Vector2.new(850, 560),  
+
+Transparent = false,  
+Theme = "Purple Duo",  
+Resizable = true,  
+SideBarWidth = 200,
+
+})
+local Tab = Window:Tab({
+    Title = "เมนู   📜 ",
+    Icon = "", -- optional
+    Locked = false,
+})
+Window:Divider()
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local enabled = false
+
+RunService.RenderStepped:Connect(function()
+    if not enabled then return end
+
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and v.Character then
+            local hrp = v.Character:FindFirstChild("HumanoidRootPart")
+
+            if hrp then
+                pcall(function()
+                    hrp.Size = Vector3.new(20, 20, 20)
+                    hrp.Transparency = 0.7
+                    hrp.BrickColor = BrickColor.new("Really black")
+                    hrp.Material = Enum.Material.Neon
+                    hrp.CanCollide = false
+                end)
+            end
+        end
+    end
+end)
+
+-- UI Toggle (อันนี้สำคัญ)
+local Toggle = Tab:Toggle({
+    Title = "Hitbox Toggle",
+    Desc = "เปิด/ปิดระบบ",
+    Default = false,
+
+    Callback = function(state)
+        enabled = state
+
+        if state then
+            print("เปิดแล้ว")
+        else
+            print("ปิดแล้ว")
+        end
+    end
+})
+
+Toggle:Set(false)
+local Button = Tab:Button({
+    Title = "ปิดฮิต",
+    Desc = "Test Button",
+    Locked = false,
+    Callback = function()
+        _G.HeadSize = 0
+_G.Disabled = true
+game:GetService('RunService').RenderStepped:connect(function()
+if _G.Disabled then
+for i,v in next, game:GetService('Players'):GetPlayers() do
+if v.Name ~= game:GetService('Players').LocalPlayer.Name then
+pcall(function()
+v.Character.HumanoidRootPart.Size = Vector3.new(_G.HeadSize,_G.HeadSize,_G.HeadSize)
+v.Character.HumanoidRootPart.Transparency = 0.7
+v.Character.HumanoidRootPart.BrickColor = BrickColor.new("Really black")
+v.Character.HumanoidRootPart.Material = "Neon"
+v.Character.HumanoidRootPart.CanCollide = false
+end)
+end
+end
+end
+end)
+    end
+})
+local Button = Tab:Button({
+    Title = "บายพาส",
+    Desc = "Test Button",
+    Locked = false,
+    Callback = function()
+        if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Players = game:GetService('Players')
+local Client = Players.LocalPlayer
+local g = getinfo or debug.getinfo
+local d = false
+local h = {}
+
+local x, y
+
+setthreadidentity(2)
+
+for i, v in getgc(true) do
+    if typeof(v) == "table" then
+        local a = rawget(v, "Detected")
+        local b = rawget(v, "Kill")
+    
+        if typeof(a) == "function" and not x then
+            x = a
+            
+            local o; o = hookfunction(x, function(c, f, n)
+                if c ~= "_" then
+                    if d then
+                        warn(`Adonis AntiCheat flagged\nMethod: {c}\nInfo: {f}`)
+                    end
+                end
+                
+                return true
+            end)
+
+            table.insert(h, x)
+        end
+
+        if rawget(v, "Variables") and rawget(v, "Process") and typeof(b) == "function" and not y then
+            y = b
+            local o; o = hookfunction(y, function(f)
+                if d then
+                    warn(`Adonis AntiCheat tried to kill (fallback): {f}`)
+                end
+            end)
+
+            table.insert(h, y)
+        end
+    end
+end
+
+local o; o = hookfunction(getrenv().debug.info, newcclosure(function(...)
+    local a, f = ...
+
+    if x and a == x then
+        if d then
+            warn(`zins | adonis bypassed`)
+        end
+
+        return coroutine.yield(coroutine.running())
+    end
+    
+    return o(...)
+end))
+
+setthreadidentity(7)
+
+
+local hookmetamethods = clonefunction(getfenv().hookmetamethod)
+local newcclosures = clonefunction(newcclosure)
+local old
+old = hookmetamethods(game, "__namecall", newcclosures(function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+
+    -- เน€เธยเน€เธเธ‘เน€เธย Kick
+    if method == "Kick" then
+        return nil
+    end
+
+    return old(self, ...)
+end))
+
+Client.PlayerScripts.araikordai:Destroy()
+
+    end
+})
