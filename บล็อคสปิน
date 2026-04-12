@@ -1,0 +1,227 @@
+--// LOAD UI
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+--// WINDOW
+local Window = WindUI:CreateWindow({
+Title = "YOMO HUB | Silent Aim",
+Icon = "crosshair",
+Author = "YOMO",
+Folder = "GotHubFolder",
+Size = UDim2.fromOffset(400, 200),
+Theme = "Dark",
+Transparent = true,
+Resizable = true,
+})
+
+local Tab = Window:Tab({Title = "Silent Aim", Icon = "crosshair"})
+
+-- ================= SETTINGS =================
+local SilentAimEnabled = false
+local FOVRadius = 120
+local CurrentTarget = nil
+
+-- ================= DRAW =================
+local Circle = Drawing.new("Circle")
+Circle.Color = Color3.fromRGB(255, 0, 0)
+Circle.Thickness = 1.5
+Circle.NumSides = 64
+Circle.Filled = false
+Circle.Transparency = 1
+Circle.Visible = false
+
+local Tracer = Drawing.new("Line")
+Tracer.Thickness = 1.5
+Tracer.Transparency = 1
+Tracer.Visible = false
+
+-- ================= PING =================
+local function getPing()
+return 0.15
+end
+
+-- ================= VELOCITY (tick) =================
+local VelocityCache = {}
+
+local function getVelocity(player)
+if not player.Character or not player.Character:FindFirstChild("Head") then
+return Vector3.zero
+end
+
+local head = player.Character.Head  
+local now = tick()  
+
+if not VelocityCache[player] then  
+    VelocityCache[player] = {  
+        lastPos = head.Position,  
+        lastTime = now,  
+        velocity = Vector3.zero  
+    }  
+    return Vector3.zero  
+end  
+
+local data = VelocityCache[player]  
+local dt = now - data.lastTime  
+
+if dt > 0 then  
+    local vel = (head.Position - data.lastPos) / dt  
+    data.velocity = vel  
+    data.lastPos = head.Position  
+    data.lastTime = now  
+end  
+
+return data.velocity
+
+end
+
+-- ================= TARGET =================
+local function getClosestTarget()
+local closest = nil
+local shortest = math.huge
+local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+
+for _, plr in pairs(Players:GetPlayers()) do  
+    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then  
+        local head = plr.Character.Head  
+        local pos, onScreen = Camera:WorldToViewportPoint(head.Position)  
+
+        if onScreen then  
+            local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude  
+            if dist <= FOVRadius then  
+                local mag = (head.Position - Camera.CFrame.Position).Magnitude  
+                if mag < shortest then  
+                    shortest = mag  
+                    closest = plr  
+                end  
+            end  
+        end  
+    end  
+end  
+
+return closest
+
+end
+
+-- ================= PREDICT =================
+local function predictPosition(head, player)
+local vel = getVelocity(player)
+return head.Position + (vel * getPing() * 1.15)
+end
+
+-- ================= LOOP =================
+RunService.RenderStepped:Connect(function()
+Circle.Visible = SilentAimEnabled
+Circle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+Circle.Radius = FOVRadius
+
+if SilentAimEnabled then  
+    CurrentTarget = getClosestTarget()  
+else  
+    CurrentTarget = nil  
+end  
+
+-- tracer RGB  
+local t = tick()  
+local r = math.sin(t * 2) * 0.5 + 0.5  
+local g = math.sin(t * 2 + 2) * 0.5 + 0.5  
+local b = math.sin(t * 2 + 4) * 0.5 + 0.5  
+Tracer.Color = Color3.new(r, g, b)  
+
+if CurrentTarget and CurrentTarget.Character and CurrentTarget.Character:FindFirstChild("Head") then  
+    local head = CurrentTarget.Character.Head  
+    local myHead = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Head")  
+
+    if myHead then  
+        local p1, v1 = Camera:WorldToViewportPoint(myHead.Position)  
+        local p2, v2 = Camera:WorldToViewportPoint(head.Position)  
+
+        if v1 and v2 then  
+            Tracer.Visible = true  
+            Tracer.From = Vector2.new(p1.X, p1.Y)  
+            Tracer.To = Vector2.new(p2.X, p2.Y)  
+        else  
+            Tracer.Visible = false  
+        end  
+    end  
+else  
+    Tracer.Visible = false  
+end
+
+end)
+
+-- ================= SHOOT HOOK =================
+local oldFire
+oldFire = hookfunction(game:GetService("ReplicatedStorage").Remotes.Send.FireServer, function(self, ...)
+local args = {...}
+
+if SilentAimEnabled and args[2] == "shoot_gun" and CurrentTarget then  
+    local char = CurrentTarget.Character  
+    if char then  
+        local head = char:FindFirstChild("Head")  
+
+        if head then  
+            local aimPos = predictPosition(head, CurrentTarget)  
+
+            args[4] = CFrame.new(math.huge, math.huge, math.huge)  
+
+            args[5] = {  
+                [1] = {  
+                    [1] = {  
+                        ["Instance"] = head,  
+                        ["Normal"] = Vector3.new(0,1,0),  
+                        ["Position"] = aimPos  
+                    }  
+                }  
+            }  
+
+            -- 🔥 BEAM RGB  
+            local beam = Instance.new("Part", workspace)  
+            beam.Anchored = true  
+            beam.CanCollide = false  
+            beam.Size = Vector3.new(0.15, 0.15, (aimPos - LocalPlayer.Character.Head.Position).Magnitude)  
+            beam.CFrame = CFrame.new(LocalPlayer.Character.Head.Position, aimPos) * CFrame.new(0,0,-beam.Size.Z/2)  
+            beam.Material = Enum.Material.Neon  
+            beam.Transparency = 0.25  
+
+            local t = tick()  
+            beam.Color = Color3.fromRGB(  
+                math.floor((math.sin(t*2)*127+128)),  
+                math.floor((math.sin(t*2+2)*127+128)),  
+                math.floor((math.sin(t*2+4)*127+128))  
+            )  
+
+            game:GetService("Debris"):AddItem(beam, 0.15)  
+        end  
+    end  
+end  
+
+return oldFire(self, unpack(args))
+
+end)
+
+-- ================= UI =================
+Tab:Toggle({
+Title = "Silent Aim",
+Default = false,
+Callback = function(v)
+SilentAimEnabled = v
+end
+})
+
+Tab:Slider({
+Title = "FOV",
+Step = 1,
+Value = {
+Min = 20,
+Max = 300,
+Default = 120,
+},
+Callback = function(v)
+FOVRadius = v
+end
+})
+
