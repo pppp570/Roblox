@@ -8,9 +8,9 @@ local LocalPlayer = Players.LocalPlayer
 
 --// WINDOW
 local Window = WindUI:CreateWindow({
-Title = "YOMO HUB | Silent Aim",
+Title = "so hub ",
 Icon = "crosshair",
-Author = "YOMO",
+Author = "so hub",
 Folder = "GotHubFolder",
 Size = UDim2.fromOffset(400, 200),
 Theme = "Dark",
