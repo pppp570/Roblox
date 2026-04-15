@@ -37,7 +37,7 @@ if A then
 B=
 A:CreateWindow
 {
-Title="MYSTIC HUB  |  Block Spin 🔫| Paid 💸",
+Title="SO HUB | Paid 💸",
 Icon="list",
 Author="HI! I'M KUNGHE I'M COOL :",
 Folder="MYSTIC HUB Now!!!",
@@ -51,8 +51,8 @@ KeyCode=Enum.KeyCode.G
 
 B:Tag
 {
-Title="v5.6",
-Color=Color3.fromHex"#30ff6a",
+Title="Block Spin 🔫",
+Color=Color3.fromHex"#FF0000",
 Radius=12
 }
 
