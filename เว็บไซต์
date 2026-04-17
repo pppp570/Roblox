@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Love Button</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    font-family: sans-serif;
+    overflow: hidden;
+}
+
+/* ปุ่ม */
+.controls {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 999;
+}
+
+button {
+    padding: 12px 20px;
+    margin-right: 10px;
+    font-size: 18px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#startBtn {
+    background: #ff4d6d;
+    color: white;
+}
+
+#stopBtn {
+    background: #333;
+    color: white;
+}
+
+button:hover {
+    transform: scale(1.1);
+}
+
+/* เอฟเฟกต์ */
+.float {
+    position: absolute;
+    pointer-events: none;
+    animation: floatUp linear forwards;
+}
+
+.heart {
+    color: red;
+}
+
+.text {
+    color: white;
+    font-weight: bold;
+}
+
+@keyframes floatUp {
+    from {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-300px) scale(1.8);
+        opacity: 0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+    <button id="startBtn">กดสิ 💖</button>
+    <button id="stopBtn">หยุดรัก 🛑</button>
+</div>
+
+<script>
+let running = false;
+let interval;
+
+document.getElementById("startBtn").onclick = () => {
+    if (running) return;
+    running = true;
+
+    interval = setInterval(() => {
+        for (let i = 0; i < 5; i++) {
+            createItem("💖", "heart");
+            createItem("รักเปา", "text");
+        }
+    }, 300);
+};
+
+document.getElementById("stopBtn").onclick = () => {
+    running = false;
+    clearInterval(interval);
+};
+
+function createItem(content, className) {
+    const el = document.createElement("div");
+    el.className = "float " + className;
+    el.innerHTML = content;
+
+    // สุ่มตำแหน่งทั้งหน้าจอ
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight;
+
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+
+    // สุ่มขนาด + ความเร็ว
+    const size = Math.random() * 20 + 16;
+    el.style.fontSize = size + "px";
+
+    const duration = Math.random() * 2 + 2;
+    el.style.animationDuration = duration + "s";
+
+    document.body.appendChild(el);
+
+    setTimeout(() => el.remove(), duration * 1000);
+}
+</script>
+
+</body>
+</html>
