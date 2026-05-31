@@ -1,0 +1,808 @@
+-- [[ Ultimate Compact Menu - Cleaned & Formatted ]] --
+
+-- ดึง Services หลักของ Roblox
+local TS = game:GetService("TweenService")
+local RS = game:GetService("RunService")
+local PL = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+
+-- ตัวแปรส่วนตัว (Local Variables)
+local LP = PL.LocalPlayer
+local CM = workspace.CurrentCamera
+local MS = LP:GetMouse()
+
+-- สร้าง UI หลัก
+local _1 = Instance.new("ScreenGui")
+local _2 = Instance.new("Frame")
+local _3 = Instance.new("Frame")
+local _4 = Instance.new("TextLabel")
+local _5 = Instance.new("TextButton")
+local _6 = Instance.new("TextButton")
+local _7 = Instance.new("ScrollingFrame")
+local _8 = Instance.new("UIListLayout")
+
+-- ค่ากำหนดเริ่มต้น (Configurations)
+espHighlightEnabled = false
+targetHighlightOnly = false
+teamCheckEnabled = false
+espTeamCheck = false
+boxEspEnabled = false
+nameEspEnabled = false
+showDistanceEnabled = false
+showHealthEnabled = false
+tpEnabled = false
+autoJumpEnabled = false
+tpDelay = 0.5
+tpRange = 500
+lookLineLength = 3
+upLineLength = 2
+sboxEnabled = false
+sboxSize = 10
+aimbotEnabled = false
+silentAimEnabled = false
+fovVisible = false
+snaplineEnabled = false
+visCheckEnabled = false
+aimSmoothness = 0.2
+fovSize = 150
+CurrentTargetPart = nil
+savedSpeed = 16
+boxEspDrawings = {}
+nameLabels = {}
+bringAllEnabled = false
+bringTargetEnabled = false
+bringTargetStr = ""
+wallbangEnabled = false
+
+local tpSpeedEnabled = false
+local tpSpeedVal = 5
+
+-- ตั้งค่า Properties ของ UI หลัก (Main Frame)
+_1.Name = "UltimateCompactMenu"
+_1.Parent = game:GetService("CoreGui")
+_1.ResetOnSpawn = false
+
+_2.Name = "MainFrame"
+_2.Parent = _1
+_2.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+_2.Position = UDim2.new(0.5, -95, 0.5, -200)
+_2.Size = UDim2.new(0, 190, 0, 30)
+_2.BorderSizePixel = 0
+_2.Active = true
+
+_3.Name = "TitleBar"
+_3.Parent = _2
+_3.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+_3.Size = UDim2.new(1, 0, 0, 30)
+
+_4.Parent = _3
+_4.BackgroundTransparency = 1
+_4.Position = UDim2.new(0, 10, 0, 0)
+_4.Size = UDim2.new(1, -60, 1, 0)
+_4.Font = Enum.Font.SourceSansBold
+_4.Text = "Menu Control"
+_4.TextColor3 = Color3.fromRGB(255, 255, 255)
+_4.TextSize = 16
+_4.TextXAlignment = Enum.TextXAlignment.Left
+
+-- ฟังก์ชันสร้างปุ่มบน TitleBar (ปุ่ม X และ ปุ่ม -)
+local function _9(t, p, pa)
+    local b = Instance.new("TextButton")
+    b.Parent = pa
+    b.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+    b.Position = p
+    b.Size = UDim2.new(0, 22, 0, 22)
+    b.Text = t
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    b.BorderSizePixel = 0
+    return b
+end
+
+_6 = _9("X", UDim2.new(1, -27, 0, 4), _3)
+_5 = _9("-", UDim2.new(1, -54, 0, 4), _3)
+
+_7.Parent = _2
+_7.BackgroundTransparency = 1
+_7.Position = UDim2.new(0, 0, 0, 35)
+_7.Size = UDim2.new(1, 0, 1, -35)
+_7.CanvasSize = UDim2.new(0, 0, 0, 1350)
+_7.ScrollBarThickness = 4
+_7.Visible = false
+
+_8.Parent = _7
+_8.HorizontalAlignment = Enum.HorizontalAlignment.Center
+_8.Padding = UDim.new(0, 6)
+
+-- ฟังก์ชันสร้างปุ่ม เปิด/ปิด (Toggle Button)
+local function _10(lt, c, d, po)
+    local tp = po or _7
+    local r = Instance.new("Frame")
+    r.Size = UDim2.new(0, 175, 0, 28)
+    r.BackgroundTransparency = 1
+    r.Parent = tp
+
+    local l = Instance.new("TextLabel")
+    l.Size = UDim2.new(0, 130, 1, 0)
+    l.BackgroundTransparency = 1
+    l.Text = lt
+    l.TextColor3 = Color3.fromRGB(255, 255, 255)
+    l.Font = Enum.Font.SourceSans
+    l.TextSize = 15
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.Parent = r
+
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0, 35, 0, 18)
+    b.Position = UDim2.new(1, -35, 0.5, -9)
+    b.BackgroundColor3 = d and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(65, 65, 65)
+    b.Text = ""
+    b.Parent = r
+    Instance.new("UICorner", b).CornerRadius = UDim.new(1, 0)
+
+    local k = Instance.new("Frame")
+    k.Size = UDim2.new(0, 14, 0, 14)
+    k.Position = d and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
+    k.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    k.Parent = b
+    Instance.new("UICorner", k).CornerRadius = UDim.new(1, 0)
+
+    local a = d or false
+    b.MouseButton1Click:Connect(function()
+        a = not a
+        local tP = a and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
+        TS:Create(k, TweenInfo.new(0.2), {Position = tP}):Play()
+        b.BackgroundColor3 = a and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(65, 65, 65)
+        c(a)
+    end)
+end
+
+-- ฟังก์ชันสร้างช่องกรอกข้อความ (TextBox Input)
+local function _11(p, c, po)
+    local tp = po or _7
+    local i = Instance.new("TextBox")
+    i.Size = UDim2.new(0, 175, 0, 28)
+    i.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    i.Font = Enum.Font.SourceSans
+    i.PlaceholderText = p
+    i.Text = ""
+    i.TextColor3 = Color3.fromRGB(255, 255, 255)
+    i.TextSize = 15
+    i.BorderSizePixel = 0
+    i.Parent = tp
+    if c then 
+        i.FocusLost:Connect(function() c(i) end) 
+    end
+    return i
+end
+
+-- ฟังก์ชันสร้างปุ่มกดทำงานทั่วไป (Normal Button)
+local function _12(t, c, po)
+    local tp = po or _7
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0, 175, 0, 28)
+    b.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    b.Text = t
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    b.Font = Enum.Font.SourceSans
+    b.TextSize = 15
+    b.BorderSizePixel = 0
+    b.Parent = tp
+    b.MouseButton1Click:Connect(c)
+end
+
+-- --- [ เริ่มต้นเพิ่มปุ่มในเมนูควบคุมหลัก ] ---
+_10("Aimbot (ล็อคจอ)", function(s) aimbotEnabled = s end)
+_10("Silent Aim (ยิงเงียบ)", function(s) silentAimEnabled = s end)
+_10("Wallbang (ทะลุกำแพง)", function(s) wallbangEnabled = s end)
+_10("Team Check (ไม่ล็อคทีม)", function(s) teamCheckEnabled = s end, false)
+_10("Visibility Check", function(s) visCheckEnabled = s end)
+_10("Snapline", function(s) snaplineEnabled = s end)
+
+_11("Smoothness (1-100) -> 20", function(i)
+    local v = tonumber(i.Text)
+    if v then
+        v = math.clamp(v, 1, 100)
+        aimSmoothness = v / 100
+        i.Text = tostring(v)
+    end
+end)
+
+_10("Show FOV", function(s) fovVisible = s end)
+_11("ตั้งค่าขนาด FOV (ปัจจุบัน 150)", function(i)
+    local v = tonumber(i.Text)
+    if v then
+        fovSize = math.clamp(v, 10, 1500)
+        i.Text = tostring(fovSize)
+    end
+end)
+
+-- เส้นคั่นเมนู
+local _d = Instance.new("Frame", _7)
+_d.Size = UDim2.new(0.9, 0, 0, 2)
+_d.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+
+_10("Sbox (Hitbox สี่เหลี่ยม)", function(s) sboxEnabled = s end)
+_11("ขนาด Sbox (ปัจจุบัน 10)", function(i)
+    local v = tonumber(i.Text)
+    if v then sboxSize = math.clamp(v, 1, 100) end
+end)
+
+_10("Highlight ESP (ทั้งหมด)", function(s) espHighlightEnabled = s end)
+_10("Highlight Target Only", function(s) targetHighlightOnly = s end)
+_10("ESP Team Check (ไม่มองทีม)", function(s) espTeamCheck = s end)
+
+_10("Box ESP 3D", function(s)
+    boxEspEnabled = s
+    if not s then 
+        for _, d in pairs(boxEspDrawings) do 
+            for _, l in pairs(d) do l.Visible = false end 
+        end 
+    end
+end)
+
+_10("Name ESP (ชื่อบนหัว)", function(s) nameEspEnabled = s end)
+_10("Show Distance (ระยะทาง)", function(s) showDistanceEnabled = s end)
+_10("Show Health (ดูเลือด)", function(s) showHealthEnabled = s end)
+_10("Auto Jump (กระโดดออโต้)", function(s) autoJumpEnabled = s end)
+
+_11("เส้นหน้า (Look) ปัจจุบัน 3", function(i)
+    local v = tonumber(i.Text)
+    if v then lookLineLength = math.max(v, 0.1) end
+end)
+
+_11("เส้นบน (Up) ปัจจุบัน 2", function(i)
+    local v = tonumber(i.Text)
+    if v then upLineLength = math.max(v, 0.1) end
+end)
+
+_10("Loop TP Player", function(s) tpEnabled = s end)
+_11("TP Range (ระยะ ปัจจุบัน 500)", function(i)
+    local v = tonumber(i.Text)
+    if v then
+        tpRange = math.max(v, 1)
+        i.Text = tostring(tpRange)
+    end
+end)
+
+local _tpi = _11("TP Delay (Min 0.01)")
+local _spi = _11("Walk Speed (กดปุ่มเพื่อเซ็ต)")
+
+_12("Set Stats (Speed & TP)", function()
+    local c = LP.Character
+    if c and c:FindFirstChild("Humanoid") then
+        local v = tonumber(_spi.Text)
+        if v then
+            savedSpeed = v
+            c.Humanoid.WalkSpeed = v
+        end
+    end
+    local dV = tonumber(_tpi.Text)
+    if dV then tpDelay = math.max(dV, 0.01) end
+end)
+
+local function _as(c)
+    if c and c:FindFirstChild("Humanoid") then 
+        c.Humanoid.WalkSpeed = savedSpeed 
+    end
+end
+
+LP.CharacterAdded:Connect(function(c)
+    c:WaitForChild("Humanoid")
+    _as(c)
+end)
+
+if LP.Character then _as(LP.Character) end
+
+-- เส้นคั่นเมนู 2
+local _d2 = Instance.new("Frame", _7)
+_d2.Size = UDim2.new(0.9, 0, 0, 2)
+_d2.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+
+_10("TP Speed (วิ่งเร็ว)", function(s) tpSpeedEnabled = s end)
+local _tpsInput = _11("TP Speed ค่า (พิมพ์แล้ววิ่งเร็วเลย)")
+_tpsInput:GetPropertyChangedSignal("Text"):Connect(function()
+    local v = tonumber(_tpsInput.Text)
+    if v then tpSpeedVal = v end
+end)
+
+_12("Fly V3", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+end)
+
+_12("Load Script", function()
+    loadstring(game:HttpGet('https://pastebin.com/raw/BGNz066Y'))()
+end)
+
+-- --- [ เมนูคุมระบบดึงผู้เล่น (Bring Control) ] ---
+local _bf = Instance.new("Frame")
+_bf.Name = "BringFrame"
+_bf.Parent = _1
+_bf.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+_bf.Position = UDim2.new(0.5, 110, 0.5, -200)
+_bf.Size = UDim2.new(0, 190, 0, 30)
+_bf.BorderSizePixel = 0
+_bf.Active = true
+
+local _btb = Instance.new("Frame")
+_btb.Name = "BringTitleBar"
+_btb.Parent = _bf
+_btb.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+_btb.Size = UDim2.new(1, 0, 0, 30)
+
+local _btt = Instance.new("TextLabel")
+_btt.Parent = _btb
+_btt.BackgroundTransparency = 1
+_btt.Position = UDim2.new(0, 10, 0, 0)
+_btt.Size = UDim2.new(1, -60, 1, 0)
+_btt.Font = Enum.Font.SourceSansBold
+_btt.Text = "Bring Control"
+_btt.TextColor3 = Color3.fromRGB(255, 255, 255)
+_btt.TextSize = 16
+_btt.TextXAlignment = Enum.TextXAlignment.Left
+
+local _bcb = _9("X", UDim2.new(1, -27, 0, 4), _btb)
+local _bmb = _9("-", UDim2.new(1, -54, 0, 4), _btb)
+
+local _bcs = Instance.new("ScrollingFrame")
+_bcs.Parent = _bf
+_bcs.BackgroundTransparency = 1
+_bcs.Position = UDim2.new(0, 0, 0, 35)
+_bcs.Size = UDim2.new(1, 0, 1, -35)
+_bcs.CanvasSize = UDim2.new(0, 0, 0, 150)
+_bcs.ScrollBarThickness = 4
+_bcs.Visible = false
+
+local _bul = Instance.new("UIListLayout")
+_bul.Parent = _bcs
+_bul.HorizontalAlignment = Enum.HorizontalAlignment.Center
+_bul.Padding = UDim.new(0, 6)
+
+_10("ดึงทั้งหมด (Bring All)", function(s) bringAllEnabled = s end, false, _bcs)
+local _ti = _11("พิมพ์ชื่อ (บางส่วนก็ได้)", nil, _bcs)
+_ti:GetPropertyChangedSignal("Text"):Connect(function() 
+    bringTargetStr = _ti.Text 
+end)
+_10("ดึงเป้าหมาย (รายคน)", function(s) bringTargetEnabled = s end, false, _bcs)
+
+
+-- --- [ ฟังก์ชันช่วยงานคำนวณเบื้องหลัง (Utility Functions) ] ---
+
+-- รับค่าสีตามทีม
+local function _GPC(p)
+    if p.Team then return p.TeamColor.Color end 
+    return Color3.fromRGB(255, 255, 255)
+end
+
+-- ตรวจสอบเงื่อนไขเป้าหมายที่ใช้ล็อก
+local function _ST(p)
+    if p == LP then return false end
+    if not p.Character or not p.Character:FindFirstChild("Head") then return false end
+    if p.Team and LP.Team and p.Team == LP.Team then return false end 
+    return true
+end
+
+-- แปลงพิกัด 3D ในเกมเป็นพิกัด 2D บนหน้าจอ UI
+local function _W2S(pos)
+    local s, o = CM:WorldToViewportPoint(pos)
+    return Vector2.new(s.X, s.Y), o, s.Z
+end
+
+-- สร้างเส้นจำลอง Drawing หลายๆ เส้น
+local function _ML(c, t, cl)
+    local l = {}
+    for i = 1, c do
+        local n = Drawing.new("Line")
+        n.Thickness = t
+        n.Color = cl
+        n.Visible = false
+        n.Transparency = 1
+        l[i] = n
+    end 
+    return l
+end
+
+-- อัปเดตข้อมูลตำแหน่งเส้นตรงบนหน้าจอ
+local function _SL(l, f, t, cl, v)
+    l.From = f
+    l.To = t
+    l.Color = cl
+    l.Visible = v
+end
+
+-- ตรวจสอบกำแพงบดบัง (Visibility Check / Wallbang)
+local function _IV(tP, c)
+    if wallbangEnabled then return true end
+    if not tP or not c then return false end
+    
+    local o = CM.CFrame.Position
+    local t = tP.Position
+    local i = {LP.Character, c, CM}
+    local p = RaycastParams.new()
+    p.FilterType = Enum.RaycastFilterType.Exclude
+    p.IgnoreWater = true
+    
+    local a = 0
+    while a < 4 do
+        p.FilterDescendantsInstances = i
+        local r = workspace:Raycast(o, t - o, p)
+        if not r or r.Instance:IsDescendantOf(c) then return true end
+        if not r.Instance.CanCollide or r.Instance.Transparency > 0.5 then
+            table.insert(i, r.Instance)
+            a = a + 1
+        else
+            return false
+        end
+    end 
+    return false
+end
+
+-- ค้นหาชื่อผู้เล่นผ่านตัวอักษรบางส่วน (String Match)
+local function _GPBS(s)
+    if not s or s == "" then return nil end
+    s = string.lower(s)
+    for _, p in pairs(PL:GetPlayers()) do
+        if p ~= LP then
+            if string.find(string.lower(p.Name), s) or string.find(string.lower(p.DisplayName), s) then
+                return p
+            end
+        end
+    end 
+    return nil
+end
+
+-- สร้างฟอนต์ข้อความสำหรับ ESP
+local function _MT()
+    local t = Drawing.new("Text")
+    t.Size = 13
+    t.Center = true
+    t.Outline = true
+    t.OutlineColor = Color3.new(0, 0, 0)
+    t.Visible = false
+    t.Transparency = 1
+    return t
+end
+
+-- ตั้งค่าวงกลม FOV และเส้นดึงเป้าหมาย
+local _FOV = Drawing.new("Circle")
+_FOV.Filled = false
+_FOV.Thickness = 1
+_FOV.Color = Color3.new(1, 1, 1)
+
+local _SNP = Drawing.new("Line")
+_SNP.Thickness = 1
+_SNP.Color = Color3.new(1, 1, 1)
+
+-- ลบข้อมูล ESP ของผู้เล่นออกเมื่ออกจากเซิร์ฟเวอร์
+local function _CESP(p)
+    if boxEspDrawings[p] then
+        for _, l in pairs(boxEspDrawings[p]) do l:Remove() end
+        boxEspDrawings[p] = nil
+    end
+    if nameLabels[p] then
+        nameLabels[p]:Remove()
+        nameLabels[p] = nil
+    end
+end
+PL.PlayerRemoving:Connect(_CESP)
+
+
+-- --- [ ระบบ Hook Game Function (Silent Aim / Wallbang บิดเบือนข้อมูลส่งเซิร์ฟเวอร์) ] ---
+
+local _ON
+_ON = hookmetamethod(game, "__namecall", newcclosure(function(s, ...)
+    local m = getnamecallmethod()
+    local a = { ... }
+    
+    if not checkcaller() and silentAimEnabled and CurrentTargetPart then
+        if m == "FireServer" and tostring(s) == "CommunicateGun" then
+            a[2] = CurrentTargetPart.Position
+        end
+        
+        if m == "FindPartOnRayWithIgnoreList" or m == "FindPartOnRayWithWhitelist" or m == "FindPartOnRay" then
+            local o = a[1].Origin
+            a[1] = Ray.new(o, (CurrentTargetPart.Position - o).Unit * 1000)
+            if wallbangEnabled then
+                return CurrentTargetPart, CurrentTargetPart.Position, Vector3.new(0, 1, 0), CurrentTargetPart.Material
+            end
+            return _ON(s, unpack(a))
+        elseif m == "Raycast" then
+            a[2] = (CurrentTargetPart.Position - a[1]).Unit * 1000
+            if wallbangEnabled then
+                local rR = {}
+                rR.Instance = CurrentTargetPart
+                rR.Position = CurrentTargetPart.Position
+                rR.Normal = Vector3.new(0, 1, 0)
+                rR.Material = CurrentTargetPart.Material
+                return rR
+            end
+            return _ON(s, unpack(a))
+        end
+    end
+    return _ON(s, ...)
+end))
+
+local _OI
+_OI = hookmetamethod(game, "__index", newcclosure(function(s, i)
+    if not checkcaller() and s == MS and silentAimEnabled and CurrentTargetPart then
+        if i == "Hit" or i == "hit" then
+            return CurrentTargetPart.CFrame
+        elseif i == "Target" or i == "target" then
+            return CurrentTargetPart
+        end
+    end
+    return _OI(s, i)
+end))
+
+
+-- --- [ ลูปการทำงานหลักของระบบผ่าน RenderSteps / Events ] ---
+
+-- ระบบอัปเดตเป้าหมาย Aimbot ล็อคเป้าอัตโนมัติ (Aim Logic)
+RS:BindToRenderStep("AimLogicUpdate", 201, function()
+    local C = Vector2.new(CM.ViewportSize.X / 2, CM.ViewportSize.Y / 2)
+    _FOV.Visible = fovVisible
+    _FOV.Radius = fovSize
+    _FOV.Position = C
+
+    local t = nil
+    local mD = fovSize
+    
+    for _, p in pairs(PL:GetPlayers()) do
+        local cT = false
+        if p ~= LP and p.Character and p.Character:FindFirstChild("Head") then
+            cT = teamCheckEnabled and _ST(p) or (not teamCheckEnabled and p ~= LP)
+        end
+        if cT then
+            local h = p.Character.Head
+            if visCheckEnabled and not _IV(h, p.Character) then continue end
+            local sP, on = CM:WorldToViewportPoint(h.Position)
+            if on then
+                local m = (Vector2.new(sP.X, sP.Y) - C).Magnitude
+                if m < mD then
+                    mD = m
+                    t = h
+                end
+            end
+        end
+    end
+
+    CurrentTargetPart = t
+    
+    if t then
+        if snaplineEnabled then
+            local sP = CM:WorldToViewportPoint(t.Position)
+            _SNP.Visible = true
+            _SNP.From = C
+            _SNP.To = Vector2.new(sP.X, sP.Y)
+        else
+            _SNP.Visible = false
+        end
+        if aimbotEnabled then
+            CM.CFrame = CM.CFrame:Lerp(CFrame.new(CM.CFrame.Position, t.Position), aimSmoothness)
+        end
+    else
+        _SNP.Visible = false
+    end
+
+    if autoJumpEnabled and LP.Character and LP.Character:FindFirstChild("Humanoid") then
+        LP.Character.Humanoid.Jump = true
+    end
+end)
+
+-- ระบบความเร็วเทเลพอร์ตสปีด (TP Speed)
+RS.Stepped:Connect(function()
+    pcall(function()
+        if not tpSpeedEnabled then return end
+        local c = LP.Character
+        local hum = c and c:FindFirstChildOfClass("Humanoid")
+        local hrp = c and c:FindFirstChild("HumanoidRootPart")
+        if hum and hrp and hum.MoveDirection.Magnitude > 0 then
+            hrp.CFrame = hrp.CFrame + (hum.MoveDirection * tpSpeedVal)
+        end
+    end)
+end)
+
+-- ลูประบบ Loop TP ติดตามเป้าหมาย
+task.spawn(function()
+    while task.wait(0.1) do
+        if tpEnabled then
+            for _, p in pairs(PL:GetPlayers()) do
+                if not tpEnabled then break end
+                if _ST(p) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    local mC = LP.Character
+                    if mC and mC:FindFirstChild("HumanoidRootPart") then
+                        local d = (mC.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
+                        if d <= tpRange then
+                            mC.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+                        end
+                        task.wait(tpDelay)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- ลูประบบ Bring (ดึงคน) และการวาดภาพแสดงผล ESP ทะลุกำแพงแบบเรียลไทม์
+RS.Heartbeat:Connect(function()
+    -- ทำงานดึงตัวผู้เล่น (Bring Logic)
+    if bringAllEnabled or bringTargetEnabled then
+        local mH = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+        if mH then
+            if bringAllEnabled then
+                for _, p in pairs(PL:GetPlayers()) do
+                    if p ~= LP and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        p.Character.HumanoidRootPart.CFrame = mH.CFrame * CFrame.new(0, 0, -3)
+                        p.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                    end
+                end
+            elseif bringTargetEnabled and bringTargetStr ~= "" then
+                local tP = _GPBS(bringTargetStr)
+                if tP and tP.Character and tP.Character:FindFirstChild("HumanoidRootPart") then
+                    tP.Character.HumanoidRootPart.CFrame = mH.CFrame * CFrame.new(0, 0, -3)
+                    tP.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                end
+            end
+        end
+    end
+
+    -- ทำงานลูปผู้เล่นทั้งหมดเพื่อวาด ESP/Sbox ต่างๆ
+    for _, p in pairs(PL:GetPlayers()) do
+        local c = p.Character
+        local hrp = c and c:FindFirstChild("HumanoidRootPart")
+        local h = c and c:FindFirstChild("Head")
+        local hum = c and c:FindFirstChild("Humanoid")
+        
+        if p == LP or not c or not hrp then
+            if boxEspDrawings[p] then
+                for _, l in pairs(boxEspDrawings[p]) do l.Visible = false end
+            end
+            if nameLabels[p] then nameLabels[p].Visible = false end
+            continue
+        end
+
+        local iT = (p.Team ~= nil and LP.Team ~= nil and p.Team == LP.Team)
+        local sE = (espTeamCheck and iT) or (hum and hum.Health <= 0)
+
+        -- ขยายขนาด Hitbox (Sbox)
+        if hrp then
+            if sboxEnabled then
+                hrp.Size = Vector3.new(sboxSize, sboxSize, sboxSize)
+                hrp.Transparency = 0.8
+                hrp.CanCollide = false
+            else
+                hrp.Size = Vector3.new(2, 2, 1)
+                hrp.Transparency = 1
+            end
+        end
+
+        -- แสดง Highlight แสงรอบตัวละคร
+        local sH = not sE and (espHighlightEnabled or (targetHighlightOnly and CurrentTargetPart and CurrentTargetPart:IsDescendantOf(c)))
+        local hl = c:FindFirstChild("SmartESP")
+        if sH then
+            if not hl then
+                hl = Instance.new("Highlight")
+                hl.Name = "SmartESP"
+                hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop;
+                hl.Parent = c
+            end
+            hl.FillColor = _GPC(p)
+            hl.FillTransparency = 0.5
+        elseif hl then
+            hl:Destroy()
+        end
+
+        -- วาดกล่อง 3D ESP
+        if not sE and boxEspEnabled and h then
+            if not boxEspDrawings[p] then
+                boxEspDrawings[p] = _ML(14, 1.5, Color3.new(1, 1, 1))
+            end
+            local l = boxEspDrawings[p]
+            local cl = _GPC(p)
+            local cf = hrp.CFrame
+            
+            local cr = {
+                cf * CFrame.new(1.5, 2.5, 1.5), cf * CFrame.new(-1.5, 2.5, 1.5),
+                cf * CFrame.new(-1.5, 2.5, -1.5), cf * CFrame.new(1.5, 2.5, -1.5),
+                cf * CFrame.new(1.5, -3.5, 1.5), cf * CFrame.new(-1.5, -3.5, 1.5),
+                cf * CFrame.new(-1.5, -3.5, -1.5), cf * CFrame.new(1.5, -3.5, -1.5)
+            }
+            
+            local s, all = {}, true
+            for i, crn in ipairs(cr) do
+                local v2, on = _W2S(crn.Position)
+                if not on then all = false; break end
+                s[i] = v2
+            end
+            
+            if all then
+                for i = 1, 4 do _SL(l[i], s[i], s[i % 4 + 1], cl, true) end
+                for i = 5, 8 do _SL(l[i], s[i], s[(i - 5 + 1) % 4 + 5], cl, true) end
+                for i = 1, 4 do _SL(l[i + 8], s[i], s[i + 4], cl, true) end
+                
+                local hS, _ = _W2S(h.Position)
+                _SL(l[13], hS, _W2S(h.Position + h.CFrame.UpVector * upLineLength), Color3.new(1, 1, 0), true)
+                _SL(l[14], hS, _W2S(h.Position + h.CFrame.LookVector * lookLineLength), Color3.new(0, 1, 1), true)
+            else
+                for i = 1, 14 do l[i].Visible = false end
+            end
+        elseif boxEspDrawings[p] then
+            for _, ln in pairs(boxEspDrawings[p]) do ln.Visible = false end
+        end
+
+        -- แสดงชื่อ ชื่อทีม เลือด และระยะทางบนหัว (Name ESP)
+        if not nameLabels[p] then nameLabels[p] = _MT() end
+        local lb = nameLabels[p]
+        
+        if not sE and nameEspEnabled and h then
+            local nS, nOn = _W2S(h.Position + Vector3.new(0, 2.5, 0))
+            if nOn then
+                local inf = p.Name
+                if showDistanceEnabled and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                    inf = inf .. " [" .. math.floor((hrp.Position - LP.Character.HumanoidRootPart.Position).Magnitude) .. "m]"
+                end
+                if showHealthEnabled and hum then
+                    inf = inf .. " [" .. math.floor(hum.Health) .. "]"
+                end
+                lb.Text = inf
+                lb.Position = nS
+                lb.Color = _GPC(p)
+                lb.Visible = true
+            else
+                lb.Visible = false
+            end
+        else
+            lb.Visible = false
+        end
+    end
+end)
+
+
+-- --- [ ระบบควบคุมการลากหน้าต่าง UI (Draggable Windows) ] ---
+local function _SD(f, t)
+    local d, dS, sP
+    t.InputBegan:Connect(function(i)
+        if (i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch) then
+            d, dS, sP = true, i.Position, f.Position
+        end
+    end)
+    UIS.InputChanged:Connect(function(i)
+        if d and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+            local dl = i.Position - dS
+            f.Position = UDim2.new(sP.X.Scale, sP.X.Offset + dl.X, sP.Y.Scale, sP.Y.Offset + dl.Y)
+        end
+    end)
+    UIS.InputEnded:Connect(function() d = false end)
+end
+
+-- เปิดใช้งานระบบลากสำหรับหน้าต่างหลักและหน้าต่าง Bring
+_SD(_2, _3)
+_SD(_bf, _btb)
+
+
+-- --- [ ตั้งค่าการทำงานเมื่อคลิกปุ่มปิด/ย่อขยายหน้าต่าง ] ---
+
+-- ปุ่มปิดเมนูควบคุมหลัก (X)
+_6.MouseButton1Click:Connect(function()
+    _FOV:Remove()
+    _SNP:Remove()
+    for _, p in pairs(PL:GetPlayers()) do _CESP(p) end
+    _1:Destroy()
+end)
+
+-- ปุ่มย่อ/ขยายเมนูควบคุมหลัก (-)
+_5.MouseButton1Click:Connect(function()
+    _7.Visible = not _7.Visible
+    _2.Size = _7.Visible and UDim2.new(0, 190, 0, 420) or UDim2.new(0, 190, 0, 30)
+end)
+
+-- ปุ่มปิดหน้าต่าง Bring Control (X)
+_bcb.MouseButton1Click:Connect(function()
+    _bf:Destroy()
+    bringAllEnabled, bringTargetEnabled = false, false
+end)
+
+-- ปุ่มย่อ/ขยายหน้าต่าง Bring Control (-)
+_bmb.MouseButton1Click:Connect(function()
+    _bcs.Visible = not _bcs.Visible
+    _bf.Size = _bcs.Visible and UDim2.new(0, 190, 0, 150) or UDim2.new(0, 190, 0, 30)
+end)
