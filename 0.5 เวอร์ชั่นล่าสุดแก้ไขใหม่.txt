@@ -1,0 +1,550 @@
+-- PART 1 (50%)
+
+local NothingLibrary = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/3345-c-a-t-s-u-s/NOTHING/main/source.lua'))();
+local Notification = NothingLibrary.Notification();
+local Windows = NothingLibrary.new({Title = "RTR-SCRIPT",Description = "RTRGGEZ UI Library",Keybind = Enum.KeyCode.LeftControl,Logo = 'http://www.roblox.com/asset/?id=18898582662'})
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
+
+local aimbotEnabled = false
+local silentAimEnabled = false
+local magicBulletEnabled = false
+local wallbangEnabled = false
+local teamCheckEnabled = false
+local visCheckEnabled = false
+local snaplineEnabled = false
+local fovVisible = false
+local fovMovable = false
+local aimSmoothness = 0.2
+local fovSize = 150
+local CurrentTargetPart = nil
+local sboxEnabled = false
+local sboxSize = 10
+local espHighlightEnabled = false
+local targetHighlightOnly = false
+local espTeamCheck = false
+local boxEspEnabled = false
+local nameEspEnabled = false 
+local showDistanceEnabled = false
+local showHealthEnabled = false
+local lookLineLength = 3
+local upLineLength = 2
+local tpEnabled = false
+local tpRange = 500
+local tpDelay = 0.5
+
+local tpSpeedEnabled = false
+local tpSpeedVal = 1
+
+local bringAllEnabled = false
+local bringTargetEnabled = false
+local bringTargetStr = ""
+local fullBrightEnabled = false
+local OrigAmbient = Lighting.Ambient
+local OrigOutdoorAmbient = Lighting.OutdoorAmbient
+local brightConnection
+local boxEspDrawings = {}
+local nameLabels = {}
+
+local fovSpeedEnabled = false
+local fovSpeedVal = 70
+local freeCamEnabled = false
+local origMaxZoom = LocalPlayer.CameraMaxZoomDistance
+local origMinZoom = LocalPlayer.CameraMinZoomDistance
+local origCamMode = LocalPlayer.CameraMode
+local wallOcclusionEnabled = false
+local origDevCamOcclusion = LocalPlayer.DevCameraOcclusionMode
+
+local frameGenEnabled = false
+local lastCameraCFrame = Camera.CFrame
+local lastRenderTime = os.clock()
+
+local fovCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+
+RunService.RenderStepped:Connect(function()
+    if fovVisible and fovMovable then
+        local location = UIS:GetMouseLocation()
+        fovCenter = Vector2.new(location.X, location.Y)
+    elseif not fovMovable then
+        fovCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    end
+end)
+
+local isClicking = false
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isClicking = true
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isClicking = false
+    end
+end)
+
+local _FOV = Drawing.new("Circle")
+_FOV.Filled = false
+_FOV.Thickness = 1
+_FOV.Color = Color3.new(1,1,1)
+local _SNP = Drawing.new("Line")
+_SNP.Thickness = 1
+_SNP.Color = Color3.new(1,1,1)
+
+local function _GPC(p)
+    if p.Team then return p.TeamColor.Color end
+    return Color3.fromRGB(255,255,255)
+end
+
+local function _ST(p)
+    if p == LocalPlayer then return false end
+    if not p.Character or not p.Character:FindFirstChild("Head") then return false end
+    if p.Team and LocalPlayer.Team and p.Team == LocalPlayer.Team then return false end
+    return true
+end
+
+local function _W2S(pos)
+    local s, o = Camera:WorldToViewportPoint(pos)
+    return Vector2.new(s.X, s.Y), o, s.Z
+end
+
+local function _ML(c, t, cl)
+    local l = {}
+    for i = 1, c do
+        local n = Drawing.new("Line")
+        n.Thickness = t
+        n.Color = cl
+        n.Visible = false
+        n.Transparency = 1
+        l[i] = n
+    end
+    return l
+end
+
+local function _SL(l, f, t, cl, v)
+    l.From = f
+    l.To = t
+    l.Color = cl
+    l.Visible = v
+end
+
+local function _IV(tP, c)
+    if wallbangEnabled then return true end
+    if not tP or not c then return false end
+    local o = Camera.CFrame.Position
+    local t = tP.Position
+    local i = {LocalPlayer.Character, c, Camera}
+    local p = RaycastParams.new()
+    p.FilterType = Enum.RaycastFilterType.Exclude
+    p.IgnoreWater = true
+    local a = 0
+    while a < 4 do
+        p.FilterDescendantsInstances = i
+        local r = workspace:Raycast(o, t - o, p)
+        if not r or r.Instance:IsDescendantOf(c) then return true end
+        if not r.Instance.CanCollide or r.Instance.Transparency > 0.5 then
+            table.insert(i, r.Instance)
+            a = a + 1
+        else
+            return false
+        end
+    end
+    return false
+end
+
+local function _GPBS(s)
+    if not s or s == "" then return nil end
+    s = string.lower(s)
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            if string.find(string.lower(p.Name), s) or string.find(string.lower(p.DisplayName), s) then
+                return p
+            end
+        end
+    end
+    return nil
+end
+
+local function _MT()
+    local t = Drawing.new("Text")
+    t.Size = 13
+    t.Center = true
+    t.Outline = true
+    t.OutlineColor = Color3.new(0,0,0)
+    t.Visible = false
+    t.Transparency = 1
+    return t
+end
+
+local function _CESP(p)
+    if boxEspDrawings[p] then
+        for _, l in pairs(boxEspDrawings[p]) do l:Remove() end
+        boxEspDrawings[p] = nil
+    end
+    if nameLabels[p] then
+        nameLabels[p]:Remove()
+        nameLabels[p] = nil
+    end
+end
+
+local function ApplyBright()
+    Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+    Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+    Lighting.ClockTime = 14
+end
+
+local function ResetBright()
+    Lighting.Ambient = OrigAmbient
+    Lighting.OutdoorAmbient = OrigOutdoorAmbient
+end
+
+Players.PlayerRemoving:Connect(_CESP)
+
+local _ON
+_ON = hookmetamethod(game, "__namecall", newcclosure(function(s, ...)
+    local m = getnamecallmethod()
+    local a = {...}
+    if not checkcaller() and silentAimEnabled and CurrentTargetPart then
+        if m == "FireServer" and tostring(s) == "CommunicateGun" then
+            a[2] = CurrentTargetPart.Position
+        end
+        if m == "FindPartOnRayWithIgnoreList" or m == "FindPartOnRayWithWhitelist" or m == "FindPartOnRay" then
+            local o = a[1].Origin
+            a[1] = Ray.new(o, (CurrentTargetPart.Position - o).Unit * 1000)
+            if wallbangEnabled then
+                return CurrentTargetPart, CurrentTargetPart.Position, Vector3.new(0,1,0), CurrentTargetPart.Material
+            end
+            return _ON(s, unpack(a))
+        elseif m == "Raycast" then
+            a[2] = (CurrentTargetPart.Position - a[1]).Unit * 1000
+            if wallbangEnabled then
+                local rR = {}
+                rR.Instance = CurrentTargetPart
+                rR.Position = CurrentTargetPart.Position
+                rR.Normal = Vector3.new(0,1,0)
+                rR.Material = CurrentTargetPart.Material
+                return rR
+            end
+            return _ON(s, unpack(a))
+        end
+    end
+    return _ON(s, ...)
+end))
+-- PART 2 (50%)
+
+local _OI
+_OI = hookmetamethod(game, "__index", newcclosure(function(s, i)
+    if not checkcaller() and s == Mouse and silentAimEnabled and CurrentTargetPart then
+        if i == "Hit" or i == "hit" then return CurrentTargetPart.CFrame
+        elseif i == "Target" or i == "target" then return CurrentTargetPart end
+    end
+    return _OI(s, i)
+end))
+
+RunService:BindToRenderStep("AimLogicUpdate", 201, function()
+    _FOV.Visible = fovVisible
+    _FOV.Radius = fovSize
+    _FOV.Position = fovCenter
+    local t = nil
+    local mD = fovSize
+    for _, p in pairs(Players:GetPlayers()) do
+        local cT = false
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+            cT = teamCheckEnabled and _ST(p) or (not teamCheckEnabled and p ~= LocalPlayer)
+        end
+        if cT then
+            local h = p.Character.Head
+            if visCheckEnabled and not _IV(h, p.Character) then continue end
+            local sP, on = Camera:WorldToViewportPoint(h.Position)
+            if on then
+                local m = (Vector2.new(sP.X, sP.Y) - fovCenter).Magnitude
+                if m < mD then mD = m t = h end
+            end
+        end
+    end
+    CurrentTargetPart = t
+    if t then
+        if snaplineEnabled then
+            local sP = Camera:WorldToViewportPoint(t.Position)
+            _SNP.Visible = true
+            _SNP.From = fovCenter
+            _SNP.To = Vector2.new(sP.X, sP.Y)
+        else _SNP.Visible = false end
+        if aimbotEnabled then
+            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, t.Position), aimSmoothness)
+        end
+    else _SNP.Visible = false end
+end)
+
+RunService.Stepped:Connect(function()
+    pcall(function()
+        local c = LocalPlayer.Character
+        local hum = c and c:FindFirstChildOfClass("Humanoid")
+        local hrp = c and c:FindFirstChild("HumanoidRootPart")
+        if not hum or not hrp then return end
+        
+        if tpSpeedEnabled and hum.MoveDirection.Magnitude > 0 then
+            local dir = hum.MoveDirection
+            local tpOffset = dir * (tpSpeedVal * 0.25)
+            hrp.CFrame = hrp.CFrame + tpOffset
+            hrp.AssemblyLinearVelocity = Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0)
+        end
+
+        if fovSpeedEnabled then
+            Camera.FieldOfView = fovSpeedVal
+        end
+
+        if freeCamEnabled then
+            LocalPlayer.CameraMaxZoomDistance = math.huge
+            LocalPlayer.CameraMinZoomDistance = 0.5
+            LocalPlayer.CameraMode = Enum.CameraMode.Classic
+        end
+
+        if wallOcclusionEnabled then
+            LocalPlayer.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
+        else
+            LocalPlayer.DevCameraOcclusionMode = origDevCamOcclusion
+        end
+    end)
+end)
+
+RunService.BindToRenderStep(RunService, "FrameInterpolation", Enum.RenderPriority.Camera.Value + 1, function()
+    if frameGenEnabled then
+        local currentTime = os.clock()
+        local deltaTime = currentTime - lastRenderTime
+        lastRenderTime = currentTime
+        
+        local currentCFrame = Camera.CFrame
+        if deltaTime > 0 and deltaTime < 0.1 then
+            local predictedCFrame = lastCameraCFrame:Lerp(currentCFrame, 1.5)
+            Camera.CFrame = predictedCFrame
+        end
+        lastCameraCFrame = currentCFrame
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.1) do
+        if tpEnabled then
+            for _, p in pairs(Players:GetPlayers()) do
+                if not tpEnabled then break end
+                if _ST(p) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    local mC = LocalPlayer.Character
+                    if mC and mC:FindFirstChild("HumanoidRootPart") then
+                        local d = (mC.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
+                        if d <= tpRange then
+                            mC.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+                        end
+                        task.wait(tpDelay)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    if bringAllEnabled or bringTargetEnabled then
+        local mH = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if mH then
+            if bringAllEnabled then
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        p.Character.HumanoidRootPart.CFrame = mH.CFrame * CFrame.new(0, 0, -3)
+                        p.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                    end
+                end
+            elseif bringTargetEnabled and bringTargetStr ~= "" then
+                local tP = _GPBS(bringTargetStr)
+                if tP and tP.Character and tP.Character:FindFirstChild("HumanoidRootPart") then
+                    tP.Character.HumanoidRootPart.CFrame = mH.CFrame * CFrame.new(0, 0, -3)
+                    tP.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                end
+            end
+        end
+    end
+    
+    for _, p in pairs(Players:GetPlayers()) do
+        local c = p.Character
+        local hrp = c and c:FindFirstChild("HumanoidRootPart")
+        local h = c and c:FindFirstChild("Head")
+        local hum = c and c:FindFirstChild("Humanoid")
+        if p == LocalPlayer or not c or not hrp then
+            if boxEspDrawings[p] then for _, l in pairs(boxEspDrawings[p]) do l.Visible = false end end
+            if nameLabels[p] then nameLabels[p].Visible = false end
+            continue
+        end
+        local iT = (p.Team ~= nil and LocalPlayer.Team ~= nil and p.Team == LocalPlayer.Team)
+        local sE = (espTeamCheck and iT) or (hum and hum.Health <= 0)
+        if hrp then
+            if sboxEnabled then
+                hrp.Size = Vector3.new(sboxSize, sboxSize, sboxSize)
+                hrp.Transparency = 0.8
+                hrp.CanCollide = false
+            else
+                hrp.Size = Vector3.new(2, 2, 1)
+                hrp.Transparency = 1
+            end
+        end
+        local sH = not sE and (espHighlightEnabled or (targetHighlightOnly and CurrentTargetPart and CurrentTargetPart:IsDescendantOf(c)))
+        local hl = c:FindFirstChild("SmartESP")
+        if sH then
+            if not hl then
+                hl = Instance.new("Highlight")
+                hl.Name = "SmartESP"
+                hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                hl.Parent = c
+            end
+            hl.FillColor = _GPC(p)
+            hl.FillTransparency = 0.5
+        elseif hl then hl:Destroy() end
+        
+        if not sE and boxEspEnabled and h then
+            if not boxEspDrawings[p] then boxEspDrawings[p] = _ML(14, 1.5, Color3.new(1,1,1)) end
+            local l = boxEspDrawings[p]
+            local cl = _GPC(p)
+            local cf = hrp.CFrame
+            local cr = {
+                cf * CFrame.new(1.5, 2.5, 1.5), cf * CFrame.new(-1.5, 2.5, 1.5),
+                cf * CFrame.new(-1.5, 2.5, -1.5), cf * CFrame.new(1.5, 2.5, -1.5),
+                cf * CFrame.new(1.5, -3.5, 1.5), cf * CFrame.new(-1.5, -3.5, 1.5),
+                cf * CFrame.new(-1.5, -3.5, -1.5), cf * CFrame.new(1.5, -3.5, -1.5)
+            }
+            local s, all = {}, true
+            for i, crn in ipairs(cr) do
+                local v2, on = _W2S(crn.Position)
+                if not on then all = false break end
+                s[i] = v2
+            end
+            if all then
+                for i = 1, 4 do _SL(l[i], s[i], s[i%4+1], cl, true) end
+                for i = 5, 8 do _SL(l[i], s[i], s[(i-5+1)%4+5], cl, true) end
+                for i = 1, 4 do _SL(l[i+8], s[i], s[i+4], cl, true) end
+                local hS, _ = _W2S(h.Position)
+                _SL(l[13], hS, _W2S(h.Position + h.CFrame.UpVector * upLineLength), Color3.new(1,1,0), true)
+                _SL(l[14], hS, _W2S(h.Position + h.CFrame.LookVector * lookLineLength), Color3.new(0,1,1), true)
+            else for i = 1, 14 do l[i].Visible = false end end
+        elseif boxEspDrawings[p] then
+            for _, ln in pairs(boxEspDrawings[p]) do ln.Visible = false end
+        end
+        if not nameLabels[p] then nameLabels[p] = _MT() end
+        local lb = nameLabels[p]
+        if not sE and nameEspEnabled and h then
+            local nS, nOn = _W2S(h.Position + Vector3.new(0, 2.5, 0))
+            if nOn then
+                local inf = p.Name
+                if showDistanceEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    inf = inf .. " [" .. math.floor((hrp.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude) .. "m]"
+                end
+                if showHealthEnabled and hum then
+                    inf = inf .. " [" .. math.floor(hum.Health) .. "]"
+                end
+                lb.Text = inf
+                lb.Position = nS
+                lb.Color = _GPC(p)
+                lb.Visible = true
+            else lb.Visible = false end
+        else lb.Visible = false end
+    end
+end)
+
+local TabCombat = Windows:NewTab({ Title = "Combat", Description = "Combat System", Icon = "rbxassetid://6035047377" })
+local TabVisuals = Windows:NewTab({ Title = "Visuals", Description = "Visual Settings", Icon = "rbxassetid://6031763426" })
+local TabPlayer = Windows:NewTab({ Title = "Player", Description = "Movement Options", Icon = "rbxassetid://6031280882" })
+local TabBring = Windows:NewTab({ Title = "Bring", Description = "Teleportation Utilities", Icon = "rbxassetid://6023565814" })
+
+local CombatSection = TabCombat:NewSection({ Title = "Aimbot", Position = "Left" })
+CombatSection:NewToggle({ Title = "Aimbot", Default = false, Callback = function(s) aimbotEnabled = s end })
+CombatSection:NewToggle({ Title = "Silent Aim", Default = false, Callback = function(s) silentAimEnabled = s end })
+CombatSection:NewToggle({ Title = "Magic Bullet", Default = false, Callback = function(s) magicBulletEnabled = s end })
+CombatSection:NewToggle({ Title = "Wallbang", Default = false, Callback = function(s) wallbangEnabled = s end })
+CombatSection:NewToggle({ Title = "Team Check", Default = false, Callback = function(s) teamCheckEnabled = s end })
+CombatSection:NewToggle({ Title = "Visibility Check", Default = false, Callback = function(s) visCheckEnabled = s end })
+CombatSection:NewToggle({ Title = "Snapline", Default = false, Callback = function(s) snaplineEnabled = s end })
+CombatSection:NewToggle({ Title = "Show FOV", Default = false, Callback = function(s) fovVisible = s end })
+CombatSection:NewToggle({ Title = "Movable FOV", Default = false, Callback = function(s) fovMovable = s end })
+CombatSection:NewSlider({ Title = "Smoothness", Min = 1, Max = 100, Default = 20, Callback = function(v) aimSmoothness = v / 100 end })
+CombatSection:NewSlider({ Title = "FOV Size", Min = 10, Max = 1500, Default = 150, Callback = function(v) fovSize = v end })
+
+local SboxSection = TabCombat:NewSection({ Title = "Hitbox Modification", Position = "Right" })
+SboxSection:NewToggle({ Title = "Hitbox Box", Default = false, Callback = function(s) sboxEnabled = s end })
+SboxSection:NewSlider({ Title = "Hitbox Size", Min = 1, Max = 100, Default = 10, Callback = function(v) sboxSize = v end })
+
+local VisualSection = TabVisuals:NewSection({ Title = "ESP Configuration", Position = "Left" })
+VisualSection:NewToggle({ Title = "Highlight ESP", Default = false, Callback = function(s) espHighlightEnabled = s end })
+VisualSection:NewToggle({ Title = "Highlight Target Only", Default = false, Callback = function(s) targetHighlightOnly = s end })
+VisualSection:NewToggle({ Title = "ESP Team Check", Default = false, Callback = function(s) espTeamCheck = s end })
+VisualSection:NewToggle({ Title = "Box ESP 3D", Default = false, Callback = function(s)
+    boxEspEnabled = s
+    if not s then for _, d in pairs(boxEspDrawings) do for _, l in pairs(d) do l.Visible = false end end end
+end })
+VisualSection:NewToggle({ Title = "Name ESP", Default = false, Callback = function(s) nameEspEnabled = s end })
+VisualSection:NewToggle({ Title = "Show Distance", Default = false, Callback = function(s) showDistanceEnabled = s end })
+VisualSection:NewToggle({ Title = "Show Health (Text)", Default = false, Callback = function(s) showHealthEnabled = s end })
+VisualSection:NewSlider({ Title = "Look Line Length", Min = 1, Max = 50, Default = 3, Callback = function(v) lookLineLength = v end })
+VisualSection:NewSlider({ Title = "Up Line Length", Min = 1, Max = 50, Default = 2, Callback = function(v) upLineLength = v end })
+
+local LightingSection = TabVisuals:NewSection({ Title = "Lighting Options", Position = "Right" })
+LightingSection:NewToggle({ Title = "Full Bright", Default = false, Callback = function(s)
+    fullBrightEnabled = s
+    if fullBrightEnabled then
+        ApplyBright()
+        brightConnection = RunService.Heartbeat:Connect(function()
+            if fullBrightEnabled then ApplyBright() end
+        end)
+    else
+        if brightConnection then brightConnection:Disconnect() brightConnection = nil end
+        ResetBright()
+    end
+end })
+
+local PlayerSection = TabPlayer:NewSection({ Title = "TP Speed", Position = "Left" })
+PlayerSection:NewToggle({ Title = "Enable TP Speed", Default = false, Callback = function(s) tpSpeedEnabled = s end })
+PlayerSection:NewSlider({ Title = "TP Speed Slider", Min = 1, Max = 1000, Default = 10, Callback = function(v) tpSpeedVal = v / 10 end })
+
+local CameraConfigSection = TabPlayer:NewSection({ Title = "Camera Options", Position = "Right" })
+CameraConfigSection:NewToggle({ Title = "Enable Custom FOV", Default = false, Callback = function(s)
+    fovSpeedEnabled = s
+    if not s then Camera.FieldOfView = 70 end
+end })
+CameraConfigSection:NewSlider({ Title = "FOV Slider", Min = 70, Max = 120, Default = 70, Callback = function(v) fovSpeedVal = v end })
+CameraConfigSection:NewButton({ Title = "Reset FOV", Callback = function()
+    Camera.FieldOfView = 70
+    fovSpeedVal = 70
+end })
+CameraConfigSection:NewToggle({ Title = "Free Zoom & Third Person", Default = false, Callback = function(s)
+    freeCamEnabled = s
+    if not s then
+        LocalPlayer.CameraMaxZoomDistance = origMaxZoom
+        LocalPlayer.CameraMinZoomDistance = origMinZoom
+        LocalPlayer.CameraMode = origCamMode
+    end
+end })
+CameraConfigSection:NewToggle({ Title = "Camera Wallbeng (Invisicam)", Default = false, Callback = function(s)
+    wallOcclusionEnabled = s
+    if not s then
+        LocalPlayer.DevCameraOcclusionMode = origDevCamOcclusion
+    end
+end })
+
+local PerformanceSection = TabPlayer:NewSection({ Title = "Performance Options", Position = "Right" })
+PerformanceSection:NewToggle({ Title = "Frame Gen", Default = false, Callback = function(s) 
+    frameGenEnabled = s 
+    if s then
+        settings().Network.IncomingReplicationLag = 0
+        setfpscap(999)
+    else
+        setfpscap(60)
+    end
+end })
+
+local BringSection = TabBring:NewSection({ Title = "Bring Teleport", Position = "Left" })
+BringSection:NewToggle({ Title = "Bring All Players", Default = false, Callback = function(s) bringAllEnabled = s end })
+BringSection:NewToggle({ Title = "Bring Target Player", Default = false, Callback = function(s) bringTargetEnabled = s end })
+BringSection:NewTextBox({ Title = "Target Name", Default = "", Placeholder = "Enter Player Name", Callback = function(v) bringTargetStr = v end })
